@@ -1,0 +1,2838 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <!-- 
+      ========================================================================
+      PROJECT INFORMATION & AUTHOR CREDITS
+      ========================================================================
+      Subject:     IT105 - Web Development
+      Project:     Pup Coffee Express & Seat Reserve (Ecoland Branch)
+      Authors:     Michael Roch T. Arcipe & Jade Ganzan
+      Location:    Ecoland, Matina, Davao City (Near St. John Paul II Parish)
+      Year:        2026
+      ========================================================================
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Michael Roch T. Arcipe,Jade Ganzan">
+    <title>Pup Coffee | Ecoland Express & Study Reserve</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            body.admin-report-print * { visibility: hidden !important; }
+            body.admin-report-print #reportPrintView, body.admin-report-print #reportPrintView * { visibility: visible !important; }
+            body.admin-report-print #reportPrintView { display: block !important; position: absolute !important; inset: 0 !important; width: 100% !important; padding: 1.5rem !important; background: white !important; color: black !important; }
+            body.admin-report-print #reportPrintView table { width: 100%; border-collapse: collapse; }
+            body.admin-report-print #reportPrintView th, body.admin-report-print #reportPrintView td { border: 1px solid #999; padding: 6px; text-align: left; }
+            body.admin-report-print .no-report-print { display: none !important; }
+        }
+        #publicNavLinks { display: flex; overflow-x: auto; scrollbar-width: thin; }
+        #publicNavLinks.hidden { display: none; }
+        html { scroll-padding-top: 9rem; }
+        [id] { scroll-margin-top: 9rem; }
+        body {
+            background-color: #edf2e8;
+            background-image: linear-gradient(125deg, #edf2e8 0%, #f7f4e8 46%, #f8ead8 100%);
+            background-attachment: fixed;
+        }
+        #dashboard {
+            max-width: none;
+            width: 100%;
+        }
+        #adminPanel > * {
+            min-width: 0;
+        }
+        .daily-totals-wrap {
+            overflow-x: auto;
+            border: 1px solid #e7e5e4;
+            border-radius: 0.75rem;
+        }
+        .daily-totals-table {
+            width: 100%;
+            min-width: 42rem;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            text-align: left;
+        }
+        .daily-totals-table thead {
+            background: #fafaf9;
+            color: #78716c;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        .daily-totals-table th,
+        .daily-totals-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e7e5e4;
+        }
+        .daily-totals-table th {
+            font-weight: 700;
+            text-align: right;
+        }
+        .daily-totals-table th:first-child,
+        .daily-totals-table td:first-child {
+            text-align: left;
+            white-space: nowrap;
+        }
+        .daily-totals-table td {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .daily-totals-table td:first-child {
+            color: #44403c;
+            font-weight: 600;
+        }
+        .daily-totals-table tbody tr:hover {
+            background: #fafaf9;
+        }
+        .daily-totals-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+        .daily-totals-empty {
+            text-align: center !important;
+            color: #78716c;
+        }
+        #siteNav > div {
+            max-width: none;
+        }
+        #access.signed-in {
+            display: block;
+            min-height: 0;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        #access.signed-in .access-welcome { display: none; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f6f7ef',
+                            100: '#e8edcf',
+                            500: '#91a83b',
+                            600: '#788e30',
+                            800: '#4f6024',
+                            900: '#39451d',
+                            950: '#252d17',
+                        },
+                        accent: {
+                            400: '#e8bf58',
+                            500: '#d6a63a',
+                        }
+                    },
+                    animation: {
+                        'bounce-soft': 'bounce-soft 0.6s infinite',
+                        'pulse-fast': 'pulse-fast 1.5s infinite',
+                    },
+                    keyframes: {
+                        'bounce-soft': {
+                            '0%, 100%': { transform: 'translateY(-5%)' },
+                            '50%': { transform: 'translateY(0)' },
+                        },
+                        'pulse-fast': {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '.6' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            body * { visibility: hidden !important; }
+            body.admin-print-mode #receiptModal:not(.hidden), body.admin-print-mode #receiptModal:not(.hidden) * { visibility: visible !important; }
+            body.admin-print-mode #receiptModal:not(.hidden) { position: static !important; display: block !important; overflow: visible !important; background: white !important; padding: 0 !important; }
+            body.admin-print-mode #receiptModal:not(.hidden) > div { max-width: none !important; box-shadow: none !important; }
+            .no-print { display: none !important; }
+        }
+        .menu-card { transition: transform .18s ease, box-shadow .18s ease; }
+        .menu-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04); }
+        .strength-fill { transition: width .3s ease, background-color .3s ease; }
+        @keyframes heart-pop {
+            0% { transform: scale(1); }
+            45% { transform: scale(1.35); }
+            100% { transform: scale(1); }
+        }
+        .heart-pop { animation: heart-pop .28s ease-out; }
+        @keyframes featured-enter {
+            from { opacity: 0; transform: translateX(12px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .featured-enter { animation: featured-enter .28s ease-out; }
+        @media (prefers-reduced-motion: reduce) {
+            .featured-enter { animation: none; }
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Sticky Navigation Bar -->
+    <nav id="siteNav" class="hidden bg-brand-950/95 backdrop-blur-md text-stone-100 shadow-lg sticky top-0 z-50 border-b border-brand-900 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap justify-between min-h-16 items-center gap-x-4 gap-y-2 py-2">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-brand-500 text-brand-950 rounded-xl flex items-center justify-center font-black text-xl shadow-md animate-bounce-soft" role="img" aria-label="Pup Coffee logo">
+                        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v7a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Z"/><path d="M17 10h1a3 3 0 1 1 0 6h-2M7 3v2m5-2v2"/></svg>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-lg tracking-wide text-white block leading-none">Pup Coffee</span>
+                        <span class="text-accent-400 text-xs font-semibold tracking-wider uppercase">Ecoland Branch • Near St. John Paul II</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3" id="navAuthActions">
+                    <span id="navSignedInBadge" class="hidden items-center gap-2 bg-emerald-500 text-emerald-950 px-3 py-2 rounded-full text-xs font-extrabold shadow-sm">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                        <span>You're signed in</span>
+                    </span>
+                    <button id="navSignOutBtn" type="button" class="hidden text-sm font-bold text-stone-300 hover:text-brand-400 transition flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-white/10 border border-white/10">
+                        <i class="fa-solid fa-right-from-bracket"></i> Sign out
+                    </button>
+                    <a href="#access" id="accessNavLink" class="hover:text-accent-400 transition text-sm font-semibold">Sign In</a>
+                </div>
+            </div>
+            <div id="publicNavLinks" class="hidden gap-2 pb-2 text-sm font-semibold" aria-label="Quick navigation">
+                <a data-nav-role="customer" href="#hero" class="shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Home</a>
+                <a data-nav-role="customer" href="#menuGrid" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Menu</a>
+                <a data-nav-role="customer" href="#customerCart" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">My order</a>
+                <a data-nav-role="customer" href="#seatBooking" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Book seats</a>
+                <a data-nav-role="customer" href="#customerBookingsList" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">My bookings</a>
+                <a data-nav-role="customer" href="#customerOrdersPanel" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Order history</a>
+                <a data-nav-role="customer" href="#contact" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Contact</a>
+                <a data-nav-role="admin" href="#adminPanel" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Overview</a>
+                <a data-nav-role="admin" href="#adminBookingsSection" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Bookings</a>
+                <a data-nav-role="admin" href="#adminPos" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Point of sale</a>
+                <a data-nav-role="admin" href="#adminInventory" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Inventory</a>
+                <a data-nav-role="admin" href="#adminOrdersSection" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Orders</a>
+                <a data-nav-role="admin" href="#adminAnalytics" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Analytics</a>
+                <a data-nav-role="admin" href="#adminReports" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Reports</a>
+                <a data-nav-role="admin" href="#contact" class="hidden shrink-0 rounded-lg px-3 py-2 hover:bg-white/10 hover:text-accent-400 transition">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 1. HERO SECTION -->
+    <section id="hero" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+        <div class="relative rounded-3xl overflow-hidden shadow-2xl bg-brand-950 text-white border border-brand-900">
+            <div class="absolute inset-0 opacity-40">
+                <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1200&q=80" alt="Pup Coffee Ecoland cafe" class="w-full h-full object-cover">
+            </div>
+            <div class="relative max-w-2xl px-6 py-16 sm:py-24 sm:px-12 space-y-6">
+                <span class="inline-flex items-center gap-2 bg-brand-500/20 text-brand-100 border border-brand-500/40 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm">
+                    <i class="fa-solid fa-location-dot text-accent-400"></i> Ecoland Community Solution
+                </span>
+                <h1 class="text-4xl sm:text-5xl font-black tracking-tight leading-tight text-white">
+                    Coffee, ready when you are at <span class="text-brand-500">Pup Coffee</span>
+                </h1>
+                <p class="text-stone-300 text-base sm:text-lg leading-relaxed">
+                    Skip long ordering lines and check live study table seating before walking over from St. John Paul II Parish or McArthur Highway.
+                </p>
+                <div class="flex flex-wrap gap-4 pt-2">
+                    <a href="#dashboard" class="bg-brand-500 hover:bg-brand-600 text-brand-950 font-bold px-6 py-3.5 rounded-xl shadow-lg hover:shadow-brand-500/20 transition flex items-center gap-2">
+                        <i class="fa-solid fa-mug-hot"></i> Pre-Order & Check Seats
+                    </a>
+                    <a href="#about" class="bg-stone-900/80 hover:bg-stone-800 text-stone-200 font-semibold px-6 py-3.5 rounded-xl border border-stone-700 transition">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. ABOUT & COMMUNITY PROBLEM SECTION -->
+    <section id="about" class="hidden bg-white py-16 border-y border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+            <div class="grid lg:grid-cols-2 gap-10 items-center">
+                <div class="space-y-4">
+                    <span class="text-brand-600 font-extrabold text-xs uppercase tracking-wider">The Community Challenge</span>
+                    <h2 class="text-3xl font-black text-stone-900">Solving Rush Hour Overcrowding in Ecoland</h2>
+                    <p class="text-stone-600 leading-relaxed">
+                        Pup Coffee Ecoland is a favorite study and rest stop for students, remote workers, and parishioners visiting St. John Paul II Parish. During peak hours (3 PM – 9 PM), customers often wait in long queues and struggle to find available study tables with power outlets.
+                    </p>
+                    <p class="text-stone-600 leading-relaxed">
+                        Our web application gives you real-time visibility over seating capacity and lets you pre-order your favorites ahead of time.
+                    </p>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg border border-stone-200">
+                    <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=800&q=80" alt="Cafe ambiance and study environment" class="w-full h-72 object-cover">
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6 pt-2">
+                <div class="bg-stone-50 p-6 rounded-2xl border border-stone-200 hover:border-brand-500 transition space-y-3">
+                    <div class="w-10 h-10 bg-brand-100 text-brand-800 rounded-xl flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-chair"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-stone-900">Live Seat Status</h3>
+                    <p class="text-stone-600 text-sm">Know if power outlet study tables are occupied before leaving home or church.</p>
+                </div>
+                <div class="bg-stone-50 p-6 rounded-2xl border border-stone-200 hover:border-brand-500 transition space-y-3">
+                    <div class="w-10 h-10 bg-brand-100 text-brand-800 rounded-xl flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-stone-900">Express Pickup Counter</h3>
+                    <p class="text-stone-600 text-sm">Place pre-orders ahead of time and grab your coffee directly at the express counter.</p>
+                </div>
+                <div class="bg-stone-50 p-6 rounded-2xl border border-stone-200 hover:border-brand-500 transition space-y-3">
+                    <div class="w-10 h-10 bg-brand-100 text-brand-800 rounded-xl flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-stone-900">Student & Parish Friendly</h3>
+                    <p class="text-stone-600 text-sm">Designed specifically for local Matina/Ecoland student groups and community members.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Role-separated access -->
+    <section id="access" class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 lg:py-10 min-h-[calc(100svh-4rem)] grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+        <div class="access-welcome order-2 md:order-1 relative min-h-72 md:min-h-[38rem] overflow-hidden rounded-2xl bg-brand-950 text-white shadow-lg border border-brand-900">
+            <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&amp;fit=crop&amp;w=1400&amp;q=85" alt="Warm cafe interior at Pup Coffee" class="absolute inset-0 h-full w-full object-cover opacity-55">
+            <div class="absolute inset-0 bg-brand-950/55"></div>
+            <div class="relative flex h-full min-h-72 md:min-h-[38rem] flex-col justify-between p-6 sm:p-8 lg:p-10">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-500 text-brand-950" role="img" aria-label="Pup Coffee logo"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v7a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Z"/><path d="M17 10h1a3 3 0 1 1 0 6h-2M7 3v2m5-2v2"/></svg></span>
+                    <div>
+                        <p class="font-black tracking-wide">Pup Coffee</p>
+                        <p class="text-xs font-bold uppercase text-accent-400">Ecoland Branch</p>
+                    </div>
+                </div>
+                <div class="max-w-xl space-y-5">
+                    <p class="text-xs font-extrabold uppercase text-accent-400">Coffee · Express pickup · Study seats</p>
+                    <h1 class="text-3xl sm:text-4xl font-black leading-tight">Your Ecoland coffee stop, ready when you are.</h1>
+                    <p class="max-w-lg text-sm sm:text-base leading-relaxed text-stone-200">Order ahead, find a seat, and make room for a better break in Matina.</p>
+                    <div class="grid sm:grid-cols-2 gap-3 border-t border-white/25 pt-5">
+                        <div class="flex items-start gap-3"><i class="fa-solid fa-location-dot mt-1 text-accent-400" aria-hidden="true"></i><p class="text-sm font-semibold">Ecoland, Matina<br><span class="font-normal text-stone-300">Near St. John Paul II Parish</span></p></div>
+                        <div class="flex items-start gap-3"><i class="fa-solid fa-chair mt-1 text-accent-400" aria-hidden="true"></i><p class="text-sm font-semibold">Coffee and study seating<br><span class="font-normal text-stone-300">Check availability after sign-in</span></p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="access-card order-1 md:order-2 max-w-2xl w-full mx-auto bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden self-center">
+            <div class="relative p-6 sm:p-8 pr-20 border-b border-stone-200">
+                <div class="absolute top-6 right-6 w-12 h-12 bg-brand-500 text-brand-950 rounded-xl shadow-md flex items-center justify-center" role="img" aria-label="Pup Coffee logo">
+                    <svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v7a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Z"/><path d="M17 10h1a3 3 0 1 1 0 6h-2M7 3v2m5-2v2"/></svg>
+                </div>
+                <p class="text-brand-600 font-extrabold text-xs uppercase tracking-wider">Pup Coffee | Ecoland</p>
+                <h2 class="text-2xl font-black text-stone-900 mt-1">Account access</h2>
+                <p class="text-stone-500 text-sm mt-2">Create an account first, then sign in to confirm and enter your dashboard.</p>
+            </div>
+            <div id="authPanel" class="p-6 sm:p-8 space-y-5">
+                <div class="grid grid-cols-3 gap-2" role="tablist" aria-label="Account access type">
+                    <button type="button" role="tab" aria-selected="true" data-auth-view="customer-login" class="auth-tab bg-brand-950 text-white px-2 py-2.5 rounded-lg text-xs sm:text-sm font-bold">Customer Login</button>
+                    <button type="button" role="tab" aria-selected="false" data-auth-view="register" class="auth-tab bg-stone-100 text-stone-700 px-2 py-2.5 rounded-lg text-xs sm:text-sm font-bold">Create Account</button>
+                    <button type="button" role="tab" aria-selected="false" data-auth-view="admin-login" class="auth-tab bg-stone-100 text-stone-700 px-2 py-2.5 rounded-lg text-xs sm:text-sm font-bold">Admin Login</button>
+                </div>
+
+                <form id="customerLoginForm" class="auth-form space-y-4">
+                    <div>
+                        <label for="customerLoginEmail" class="block text-xs font-bold text-stone-700 mb-1">Email address</label>
+                        <input id="customerLoginEmail" type="email" autocomplete="email" required class="w-full p-3 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <div>
+                        <label for="customerLoginPassword" class="block text-xs font-bold text-stone-700 mb-1">Password</label>
+                        <input id="customerLoginPassword" type="password" autocomplete="current-password" required class="w-full p-3 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-sm transition">Confirm &amp; Enter Dashboard</button>
+                </form>
+
+                <form id="customerRegisterForm" class="auth-form hidden grid sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label for="registerName" class="block text-xs font-bold text-stone-700 mb-1">Full name</label>
+                        <input id="registerName" type="text" autocomplete="name" minlength="2" maxlength="100" required class="w-full p-3 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <div>
+                        <label for="registerEmail" class="block text-xs font-bold text-stone-700 mb-1">Email address</label>
+                        <input id="registerEmail" type="email" autocomplete="email" maxlength="254" required class="w-full p-3 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <div>
+                        <label for="registerPhone" class="block text-xs font-bold text-stone-700 mb-1">Mobile number</label>
+                        <input id="registerPhone" type="tel" autocomplete="tel" maxlength="30" required class="w-full p-3 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label for="registerPassword" class="block text-xs font-bold text-stone-700 mb-1">Password (8+ characters)</label>
+                        <input id="registerPassword" type="password" autocomplete="new-password" minlength="8" required class="w-full p-3 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none" oninput="updatePasswordStrength()">
+                        <div id="strengthContainer" class="hidden mt-2 space-y-1">
+                            <div class="flex justify-between text-xs font-bold">
+                                <span id="strengthLabel" class="text-stone-600">Strength: Weak</span>
+                                <span id="strengthScore" class="text-stone-600">0 / 5</span>
+                            </div>
+                            <div class="h-2 w-full rounded-full bg-stone-200 overflow-hidden border border-stone-300">
+                                <div id="strengthFill" class="strength-fill h-full w-0 bg-red-500"></div>
+                            </div>
+                            <p id="strengthHint" class="text-xs text-stone-500">Add uppercase letters, numbers, and symbols to make it stronger.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="registerPasswordConfirm" class="block text-xs font-bold text-stone-700 mb-1">Confirm password</label>
+                        <input id="registerPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required class="w-full p-3 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <button type="submit" id="registerSubmitBtn" class="sm:col-span-2 w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-sm transition disabled:opacity-50 disabled:cursor-not-allowed">Create customer account</button>
+                </form>
+
+                <form id="adminLoginForm" class="auth-form hidden space-y-4">
+                    <div>
+                        <label for="adminLoginEmail" class="block text-xs font-bold text-stone-700 mb-1">Administrator email</label>
+                        <input id="adminLoginEmail" type="email" autocomplete="username" required class="w-full p-3 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <div>
+                        <label for="adminLoginPassword" class="block text-xs font-bold text-stone-700 mb-1">Administrator password</label>
+                        <input id="adminLoginPassword" type="password" autocomplete="current-password" required class="w-full p-3 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-sm transition">Confirm &amp; Enter Admin</button>
+                    <p class="text-xs text-stone-500">Administrator sign-in: admin@Pupcoffee.local / Admin123!</p>
+                </form>
+
+                <p id="authMessage" class="hidden text-sm p-3 rounded-lg" role="status" aria-live="polite"></p>
+                <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3">Accounts and orders are stored only in this browser. Do not use real passwords or personal information. A secure server is required for a live service.</p>
+            </div>
+            <div id="signedInPanel" class="hidden p-6 sm:p-8">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <div>
+                        <p id="signedInRole" class="text-brand-600 font-extrabold text-xs uppercase tracking-wider"></p>
+                        <h3 id="signedInName" class="font-black text-xl text-stone-900 mt-1"></h3>
+                        <p id="signedInEmail" class="text-stone-500 text-sm"></p>
+                    </div>
+                    <button id="signOutButton" type="button" class="border border-stone-300 hover:bg-stone-100 text-stone-800 font-bold px-4 py-2.5 rounded-lg text-sm">Sign out</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. MAIN FEATURE: PRE-ORDER DASHBOARD & SEAT TRACKER -->
+    <section id="dashboard" class="hidden mx-auto px-4 sm:px-6 xl:px-10 2xl:px-14 py-8 lg:py-10 space-y-6 no-print">
+        
+        <!-- Live Table Availability Indicator Banner -->
+        <div class="bg-stone-900 text-white p-6 rounded-2xl shadow-md border border-stone-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <div class="w-4 h-4 bg-emerald-500 rounded-full animate-pulse-fast absolute"></div>
+                    <div class="w-4 h-4 bg-emerald-500 rounded-full relative"></div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base">Ecoland Branch Live Status</h3>
+                    <p class="text-stone-400 text-xs">Estimated Wait Time: <span class="text-brand-500 font-bold">8 mins</span></p>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-3 text-xs">
+                <span class="bg-stone-800 border border-stone-700 px-3 py-1.5 rounded-lg">Study Tables: <strong id="openTablesStatus" class="text-emerald-400">4 vacant now</strong></span>
+                <span class="bg-stone-800 border border-stone-700 px-3 py-1.5 rounded-lg">Power Sockets: <strong id="openSocketsStatus" class="text-amber-400">2 Available</strong></span>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+            <div>
+                <h2 class="text-2xl font-black text-stone-900">Pre-Order Dashboard</h2>
+                <p class="text-stone-500 text-sm">Search menu items, select pickup times, and place express orders.</p>
+            </div>
+            <!-- JS Feature 1: Menu Search Filter -->
+            <div class="w-full md:w-72 relative">
+                <input type="text" id="menuSearch" placeholder="Search iced coffee, snacks..." class="w-full pl-10 pr-4 py-2.5 border border-stone-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm bg-stone-50">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-stone-400"><i class="fa-solid fa-magnifying-glass"></i></span>
+            </div>
+        </div>
+
+        <section id="featuredCarousel" class="relative overflow-hidden rounded-2xl bg-brand-950 text-white shadow-md touch-pan-y" aria-roledescription="carousel" aria-label="Featured products" tabindex="0">
+            <div class="grid md:grid-cols-2 min-h-56">
+                <div class="relative min-h-48 md:min-h-64 bg-stone-800">
+                    <div id="featuredImageFallback" class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-brand-900 text-brand-100" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" class="w-14 h-14 text-accent-400" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v7a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Z"/><path d="M17 10h1a3 3 0 1 1 0 6h-2M7 3v2m5-2v2"/></svg>
+                        <span class="text-xs font-bold uppercase tracking-wider">Pup Coffee</span>
+                    </div>
+                    <img id="featuredImage" class="hidden absolute inset-0 w-full h-full object-cover" alt="">
+                    <span class="absolute top-4 left-4 bg-accent-400 text-brand-950 px-3 py-1 rounded-full text-xs font-extrabold uppercase">Featured today</span>
+                </div>
+                <div class="relative flex flex-col justify-center p-6 sm:p-8 md:pr-24 space-y-3">
+                    <p id="featuredCategory" class="text-brand-300 text-xs font-extrabold uppercase">Coffee &amp; drinks</p>
+                    <h3 id="featuredName" class="text-2xl font-black">Loading featured item</h3>
+                    <p id="featuredDescription" class="text-stone-300 text-sm leading-relaxed"></p>
+                    <div class="flex items-center gap-4 pt-1">
+                        <span id="featuredPrice" class="text-accent-400 text-lg font-extrabold"></span>
+                        <button id="featuredAddButton" type="button" class="bg-brand-500 hover:bg-brand-400 text-brand-950 px-4 py-2.5 rounded-lg text-sm font-extrabold transition"><i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>Add to order</button>
+                    </div>
+                    <div class="flex items-center gap-2 pt-2" aria-label="Featured product position">
+                        <button id="featuredPrevious" type="button" class="w-9 h-9 rounded-full border border-white/30 hover:bg-white/10" aria-label="Previous featured product" title="Previous"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+                        <div id="featuredIndicators" class="flex items-center gap-1.5" aria-live="polite"></div>
+                        <button id="featuredNext" type="button" class="w-9 h-9 rounded-full border border-white/30 hover:bg-white/10" aria-label="Next featured product" title="Next"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <nav id="customerQuickLinks" class="hidden flex flex-wrap gap-2" aria-label="Customer shortcuts">
+            <a href="#hero" class="bg-white border border-stone-300 hover:border-brand-600 px-4 py-2.5 rounded-lg text-sm font-semibold"><i class="fa-solid fa-house mr-2" aria-hidden="true"></i>Home</a>
+            <a href="#about" class="bg-white border border-stone-300 hover:border-brand-600 px-4 py-2.5 rounded-lg text-sm font-semibold"><i class="fa-solid fa-circle-info mr-2" aria-hidden="true"></i>About</a>
+            <a href="#dashboard" class="bg-white border border-stone-300 hover:border-brand-600 px-4 py-2.5 rounded-lg text-sm font-semibold"><i class="fa-solid fa-chair mr-2" aria-hidden="true"></i>Order &amp; Seats</a>
+            <a href="#menuGrid" class="bg-white border border-stone-300 hover:border-brand-600 px-4 py-2.5 rounded-lg text-sm font-semibold"><i class="fa-solid fa-mug-hot mr-2" aria-hidden="true"></i>Menu</a>
+            <a href="#customerCart" class="bg-white border border-stone-300 hover:border-brand-600 px-4 py-2.5 rounded-lg text-sm font-semibold"><i class="fa-solid fa-basket-shopping mr-2" aria-hidden="true"></i>My order</a>
+            <a href="#customerOrdersPanel" class="bg-white border border-stone-300 hover:border-brand-600 px-4 py-2.5 rounded-lg text-sm font-semibold"><i class="fa-solid fa-receipt mr-2" aria-hidden="true"></i>Order history</a>
+            <a href="#contact" class="bg-white border border-stone-300 hover:border-brand-600 px-4 py-2.5 rounded-lg text-sm font-semibold"><i class="fa-solid fa-envelope mr-2" aria-hidden="true"></i>Contact</a>
+        </nav>
+
+        <div class="flex flex-wrap gap-2" role="group" aria-label="Filter menu">
+            <button type="button" data-menu-filter="all" aria-pressed="true" class="menu-filter bg-brand-950 text-white px-4 py-2 rounded-full text-sm font-bold">All items</button>
+            <button type="button" data-menu-filter="drink" aria-pressed="false" class="menu-filter bg-white border border-stone-300 text-stone-700 px-4 py-2 rounded-full text-sm font-bold"><i class="fa-solid fa-mug-hot mr-1" aria-hidden="true"></i>Coffee &amp; drinks</button>
+            <button type="button" data-menu-filter="food" aria-pressed="false" class="menu-filter bg-white border border-stone-300 text-stone-700 px-4 py-2 rounded-full text-sm font-bold"><i class="fa-solid fa-cookie-bite mr-1" aria-hidden="true"></i>Food</button>
+            <button type="button" data-menu-filter="favorites" aria-pressed="false" class="menu-filter bg-white border border-stone-300 text-stone-700 px-4 py-2 rounded-full text-sm font-bold"><i class="fa-solid fa-heart mr-1" aria-hidden="true"></i>My favorites</button>
+        </div>
+
+        <section id="housePicks" class="bg-rose-50 border border-rose-200 rounded-xl p-5 space-y-4" aria-labelledby="housePicksTitle">
+            <div class="flex flex-wrap justify-between items-end gap-2">
+                <div>
+                    <p class="text-rose-700 font-extrabold text-xs uppercase tracking-wider">Customer favorites</p>
+                    <h3 id="housePicksTitle" class="font-black text-xl text-stone-900">Pup picks &amp; your favorites</h3>
+                </div>
+                <a href="#menuGrid" class="text-sm font-bold text-rose-800 hover:underline">Browse the full menu</a>
+            </div>
+            <div id="housePicksList" class="grid sm:grid-cols-3 gap-3"></div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6 items-start">
+            <!-- Menu Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:col-span-3 lg:grid-cols-3 gap-4" id="menuGrid">
+                
+                <div class="menu-card bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 hover:shadow-md transition flex flex-col justify-between" data-name="pup coffee matcha espresso blend">
+                    <img src="https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=500&q=80" class="h-44 w-full object-cover" alt="Matcha Espresso">
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-stone-900 text-base">Matcha Espresso Fusion</h3>
+                                <span class="text-brand-600 font-extrabold">₱140</span>
+                            </div>
+                            <p class="text-stone-500 text-xs mt-1">Layered Japanese matcha and fresh espresso shot.</p>
+                        </div>
+                        <button onclick="addToOrder('Matcha Espresso Fusion', 140)" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Add to Order</button>
+                    </div>
+                </div>
+
+                <div class="menu-card bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 hover:shadow-md transition flex flex-col justify-between" data-name="ecoland cold brew arabica">
+                    <img src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=500&q=80" class="h-44 w-full object-cover" alt="Cold Brew">
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-stone-900 text-base">Ecoland Signature Cold Brew</h3>
+                                <span class="text-brand-600 font-extrabold">₱125</span>
+                            </div>
+                            <p class="text-stone-500 text-xs mt-1">16-hour slow steep local Mindanao Arabica blend.</p>
+                        </div>
+                        <button onclick="addToOrder('Ecoland Cold Brew', 125)" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Add to Order</button>
+                    </div>
+                </div>
+
+                <div class="menu-card bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 hover:shadow-md transition flex flex-col justify-between" data-name="salted caramel iced latte">
+                    <img src="https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=500&q=80" class="h-44 w-full object-cover" alt="Caramel Latte">
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-stone-900 text-base">Salted Caramel Iced Latte</h3>
+                                <span class="text-brand-600 font-extrabold">₱135</span>
+                            </div>
+                            <p class="text-stone-500 text-xs mt-1">Rich espresso with creamy milk and salted caramel drizzle.</p>
+                        </div>
+                        <button onclick="addToOrder('Salted Caramel Latte', 135)" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Add to Order</button>
+                    </div>
+                </div>
+
+                <div class="menu-card bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 hover:shadow-md transition flex flex-col justify-between" data-name="butter croissant study snack">
+                    <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=500&q=80" class="h-44 w-full object-cover" alt="Butter Croissant">
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-stone-900 text-base">Fresh Butter Croissant</h3>
+                                <span class="text-brand-600 font-extrabold">₱85</span>
+                            </div>
+                            <p class="text-stone-500 text-xs mt-1">Flaky baked pastry—the perfect companion for study hours.</p>
+                        </div>
+                        <button onclick="addToOrder('Butter Croissant', 85)" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Add to Order</button>
+                    </div>
+                </div>
+
+                <!-- New products -->
+                <div class="menu-card bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 hover:shadow-md transition flex flex-col justify-between" data-name="spanish latte">
+                    <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=500&q=80" class="h-44 w-full object-cover" alt="Spanish Latte">
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-stone-900 text-base">Spanish Latte</h3>
+                                <span class="text-brand-600 font-extrabold">₱110</span>
+                            </div>
+                            <p class="text-stone-500 text-xs mt-1">Espresso with condensed milk for a creamy sweet kick.</p>
+                        </div>
+                        <button onclick="addToOrder('Spanish Latte', 110)" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Add to Order</button>
+                    </div>
+                </div>
+
+                <div class="menu-card bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 hover:shadow-md transition flex flex-col justify-between" data-name="vietnamese iced coffee">
+                    <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=500&q=80" class="h-44 w-full object-cover" alt="Vietnamese Iced Coffee">
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-stone-900 text-base">Vietnamese Iced Coffee</h3>
+                                <span class="text-brand-600 font-extrabold">₱100</span>
+                            </div>
+                            <p class="text-stone-500 text-xs mt-1">Strong dark roast drip coffee over ice with sweetened condensed milk.</p>
+                        </div>
+                        <button onclick="addToOrder('Vietnamese Iced Coffee', 100)" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Add to Order</button>
+                    </div>
+                </div>
+
+                <div class="menu-card bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 hover:shadow-md transition flex flex-col justify-between" data-name="hazelnut mocha">
+                    <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=500&q=80" class="h-44 w-full object-cover" alt="Hazelnut Mocha">
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-stone-900 text-base">Hazelnut Mocha</h3>
+                                <span class="text-brand-600 font-extrabold">₱150</span>
+                            </div>
+                            <p class="text-stone-500 text-xs mt-1">Chocolatey espresso blended with roasted hazelnut syrup.</p>
+                        </div>
+                        <button onclick="addToOrder('Hazelnut Mocha', 150)" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Add to Order</button>
+                    </div>
+                </div>
+
+                <div class="menu-card bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 hover:shadow-md transition flex flex-col justify-between" data-name="ube latte">
+                    <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=500&q=80" class="h-44 w-full object-cover" alt="Ube Latte">
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-stone-900 text-base">Ube Latte</h3>
+                                <span class="text-brand-600 font-extrabold">₱140</span>
+                            </div>
+                            <p class="text-stone-500 text-xs mt-1">Purple yam latte with steamed milk—a local favorite.</p>
+                        </div>
+                        <button onclick="addToOrder('Ube Latte', 140)" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Add to Order</button>
+                    </div>
+                </div>
+
+                <div class="menu-card bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 hover:shadow-md transition flex flex-col justify-between" data-name="blueberry cheesecake">
+                    <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=500&q=80" class="h-44 w-full object-cover" alt="Blueberry Cheesecake">
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-stone-900 text-base">Blueberry Cheesecake</h3>
+                                <span class="text-brand-600 font-extrabold">₱110</span>
+                            </div>
+                            <p class="text-stone-500 text-xs mt-1">Baked cheesecake topped with fresh blueberry compote.</p>
+                        </div>
+                        <button onclick="addToOrder('Blueberry Cheesecake', 110)" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Add to Order</button>
+                    </div>
+                </div>
+
+                <div class="menu-card bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 hover:shadow-md transition flex flex-col justify-between" data-name="mocha coffee shake iced blended">
+                    <img src="https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=500&q=80" class="h-44 w-full object-cover" alt="Iced mocha coffee shake">
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-stone-900 text-base">Mocha Coffee Shake</h3>
+                                <span class="text-brand-600 font-extrabold">₱155</span>
+                            </div>
+                            <p class="text-stone-500 text-xs mt-1">Chilled espresso blended with chocolate and creamy milk.</p>
+                        </div>
+                        <button onclick="addToOrder('Mocha Coffee Shake', 155)" class="w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Add to Order</button>
+                    </div>
+                </div>
+
+            </div>
+            <aside id="customerCart" class="bg-white p-5 rounded-2xl shadow-sm border border-stone-200 min-h-80 flex flex-col gap-4 lg:sticky lg:top-24">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-stone-900">Your order</h3>
+                    <span id="cartCount" class="text-xs font-bold text-stone-500">0 items</span>
+                </div>
+                <ul id="cartItems" class="space-y-3 text-sm flex-1" aria-live="polite">
+                    <li class="text-stone-500">Your order is empty.</li>
+                </ul>
+                <div class="flex justify-between border-t border-stone-200 pt-3 font-bold">
+                    <span>Total</span>
+                    <span id="cartTotal">₱0.00</span>
+                </div>
+                <button id="placeOrderBtn" type="button" class="mt-auto w-full bg-brand-950 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-sm transition">Place order</button>
+                <p id="orderMessage" class="hidden text-sm rounded-lg p-3" role="status" aria-live="polite"></p>
+            </aside>
+        </div>
+
+        <div id="customerActivityPanels" class="grid md:grid-cols-2 gap-6 items-start">
+        <section id="seatBooking" class="bg-white p-6 rounded-2xl border border-stone-200 space-y-4" aria-labelledby="seatBookingTitle">
+            <div>
+                <p class="text-brand-600 font-extrabold text-xs uppercase tracking-wider">Study seat scheduling</p>
+                <h3 id="seatBookingTitle" class="font-bold text-lg text-stone-900">Reserve your table time</h3>
+                <p class="text-sm text-stone-500">Your request stays pending until an admin approves it. If no seats are available, the admin can delay or cancel it. Seat fee: <strong id="seatFeeRateLabel" class="text-stone-800">Free</strong> per person/hour, payable at the cafe.</p>
+            </div>
+            <form id="seatBookingForm" class="space-y-4">
+                <fieldset>
+                    <legend class="text-xs font-bold text-stone-700 mb-2">Who is joining you?</legend>
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <label class="relative cursor-pointer">
+                            <input class="peer sr-only" type="radio" name="seatGroupType" value="Solo" checked required>
+                            <span class="block overflow-hidden rounded-xl border-2 border-stone-200 bg-white transition peer-checked:border-brand-600 peer-checked:ring-2 peer-checked:ring-brand-100">
+                                <img src="https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=480&q=75" alt="A quiet solo cafe visit" class="h-24 w-full object-cover">
+                                <span class="block p-3"><span class="block text-sm font-bold text-stone-900">Just me</span><span class="text-xs text-stone-500">1 person</span></span>
+                            </span>
+                        </label>
+                        <label class="relative cursor-pointer">
+                            <input class="peer sr-only" type="radio" name="seatGroupType" value="Couple">
+                            <span class="block overflow-hidden rounded-xl border-2 border-stone-200 bg-white transition peer-checked:border-brand-600 peer-checked:ring-2 peer-checked:ring-brand-100">
+                                <img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=480&q=75" alt="Two people enjoying time together" class="h-24 w-full object-cover">
+                                <span class="block p-3"><span class="block text-sm font-bold text-stone-900">As a couple</span><span class="text-xs text-stone-500">2 people</span></span>
+                            </span>
+                        </label>
+                        <label class="relative cursor-pointer">
+                            <input class="peer sr-only" type="radio" name="seatGroupType" value="Friends">
+                            <span class="block overflow-hidden rounded-xl border-2 border-stone-200 bg-white transition peer-checked:border-brand-600 peer-checked:ring-2 peer-checked:ring-brand-100">
+                                <img src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=480&q=75" alt="Friends sharing a meal at a cafe" class="h-24 w-full object-cover">
+                                <span class="block p-3"><span class="block text-sm font-bold text-stone-900">With friends</span><span class="text-xs text-stone-500">Group booking</span></span>
+                            </span>
+                        </label>
+                        <label class="relative cursor-pointer">
+                            <input class="peer sr-only" type="radio" name="seatGroupType" value="Family">
+                            <span class="block overflow-hidden rounded-xl border-2 border-stone-200 bg-white transition peer-checked:border-brand-600 peer-checked:ring-2 peer-checked:ring-brand-100">
+                                <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=480&q=75" alt="Family spending time together" class="h-24 w-full object-cover">
+                                <span class="block p-3"><span class="block text-sm font-bold text-stone-900">With family</span><span class="text-xs text-stone-500">Group booking</span></span>
+                            </span>
+                        </label>
+                    </div>
+                </fieldset>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                <label class="text-xs font-bold text-stone-700">Time in
+                    <input id="seatTimeIn" type="datetime-local" required class="mt-1 block w-full p-3 border border-stone-300 rounded-xl text-sm">
+                </label>
+                <label class="text-xs font-bold text-stone-700">Time out
+                    <input id="seatTimeOut" type="datetime-local" required class="mt-1 block w-full p-3 border border-stone-300 rounded-xl text-sm">
+                </label>
+                <label class="text-xs font-bold text-stone-700">Party size
+                    <input id="seatPartySize" type="number" min="1" max="20" value="1" required class="mt-1 block w-full p-3 border border-stone-300 rounded-xl text-sm">
+                </label>
+                <label class="text-xs font-bold text-stone-700">Visit occasion
+                    <select id="seatOccasion" required class="mt-1 block w-full p-3 border border-stone-300 rounded-xl text-sm bg-white">
+                        <option value="Casual cafe visit">Casual cafe visit</option>
+                        <option value="Study or work session">Study or work session</option>
+                        <option value="Date or anniversary">Date or anniversary</option>
+                        <option value="Birthday celebration">Birthday celebration</option>
+                        <option value="Friends meetup">Friends meetup</option>
+                        <option value="Family gathering">Family gathering</option>
+                        <option value="Other celebration">Other celebration</option>
+                    </select>
+                </label>
+                </div>
+                <button type="submit" class="bg-brand-950 hover:bg-brand-600 text-white font-bold px-5 py-3 rounded-xl text-sm">Request booking</button>
+            </form>
+            <p id="seatFeeEstimate" class="text-sm font-semibold text-stone-700" aria-live="polite">Estimated seat fee: Free</p>
+            <p id="seatBookingMessage" class="hidden text-sm rounded-lg p-3" role="status" aria-live="polite"></p>
+            <div id="customerBookingsList" class="divide-y divide-stone-200"></div>
+        </section>
+
+        <section id="customerOrdersPanel" class="hidden bg-white p-6 rounded-2xl border border-stone-200 space-y-4">
+            <div class="flex flex-wrap justify-between items-center gap-3">
+                <div>
+                    <h3 class="font-bold text-lg text-stone-900">My orders</h3>
+                    <p class="text-sm text-stone-500">Review order status and print receipts.</p>
+                </div>
+                <button id="refreshCustomerOrders" type="button" class="border border-stone-300 hover:bg-stone-100 px-3 py-2 rounded-lg text-sm font-semibold">Refresh</button>
+            </div>
+            <div id="customerOrdersList" class="divide-y divide-stone-200"></div>
+        </section>
+        </div>
+
+        <section id="adminPanel" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6 content-start items-start">
+            <div class="md:col-span-2 md:order-1 flex flex-wrap justify-between items-center gap-3 border-b border-stone-300 pb-4">
+                <div>
+                    <p class="text-brand-600 font-extrabold text-xs uppercase tracking-wider">Staff workspace</p>
+                    <h2 class="text-2xl font-black text-stone-900">Branch management</h2>
+                </div>
+                <div class="flex items-center gap-3 rounded-lg bg-white border border-stone-200 p-3">
+                    <span class="text-sm font-semibold">Table capacity</span>
+                    <button id="decreaseTables" type="button" aria-label="Decrease table capacity" class="border border-stone-300 rounded px-3 py-1 font-bold">−</button>
+                    <strong id="adminTableCount" class="min-w-6 text-center">4</strong>
+                    <button id="increaseTables" type="button" aria-label="Increase table capacity" class="border border-stone-300 rounded px-3 py-1 font-bold">+</button>
+                </div>
+                <div class="flex items-center gap-3 rounded-lg bg-white border border-stone-200 p-3">
+                    <span class="text-sm font-semibold">Open sockets</span>
+                    <button id="decreaseSockets" type="button" aria-label="Decrease open sockets" class="border border-stone-300 rounded px-3 py-1 font-bold">−</button>
+                    <strong id="adminSocketCount" class="min-w-6 text-center">2</strong>
+                    <button id="increaseSockets" type="button" aria-label="Increase open sockets" class="border border-stone-300 rounded px-3 py-1 font-bold">+</button>
+                </div>
+            </div>
+
+            <section id="adminBookingsSection" class="md:col-span-2 md:order-2 bg-white p-6 rounded-2xl border border-stone-200 space-y-4">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <div>
+                        <h3 class="font-bold text-lg text-stone-900">Seat occupancy &amp; booking queue</h3>
+                        <p id="adminSeatSummary" class="text-sm text-stone-500"></p>
+                        <p class="text-xs text-stone-500">Set each request to approved, delayed for no vacant seats, or cancelled. Customers can see the decision in My bookings.</p>
+                    </div>
+                    <button id="refreshSeatBookings" type="button" class="border border-stone-300 hover:bg-stone-100 px-3 py-2 rounded-lg text-sm font-semibold">Refresh</button>
+                </div>
+                <div id="adminBookingsList" class="divide-y divide-stone-200"></div>
+            </section>
+
+            <section class="md:order-6 bg-white p-6 rounded-2xl border border-stone-200 space-y-4">
+                <div>
+                    <h3 class="font-bold text-lg text-stone-900">Seat pricing</h3>
+                    <p class="text-sm text-stone-500">Optional charge per seat, per hour. Set to zero to keep reservations free. Collect payment at the cafe.</p>
+                </div>
+                <form id="seatRateForm" class="flex flex-wrap items-end gap-3">
+                    <label class="text-xs font-bold text-stone-700">Rate per seat/hour (₱)
+                        <input id="seatRateInput" type="number" min="0" max="10000" step="0.01" value="0" required class="mt-1 block w-48 p-3 border border-stone-300 rounded-xl text-sm">
+                    </label>
+                    <button type="submit" class="bg-brand-950 hover:bg-brand-600 text-white font-bold px-5 py-3 rounded-xl text-sm">Save seat rate</button>
+                    <p id="seatRateMessage" class="text-sm" role="status" aria-live="polite"></p>
+                </form>
+            </section>
+
+            <section id="adminPos" class="md:col-span-2 md:order-3 bg-white p-6 rounded-2xl border border-stone-200 space-y-4" aria-labelledby="adminPosTitle">
+                <div>
+                    <p class="text-brand-600 font-extrabold text-xs uppercase tracking-wider">Counter express</p>
+                    <h3 id="adminPosTitle" class="font-bold text-lg text-stone-900">Point of sale</h3>
+                    <p class="text-sm text-stone-500">Build and save a counter order directly to the branch queue.</p>
+                </div>
+                <form id="posAddForm" class="grid sm:grid-cols-[1fr_8rem_auto] gap-3 items-end">
+                    <label class="text-xs font-bold text-stone-700">Menu item
+                        <select id="posProductSelect" required class="mt-1 block w-full p-3 border border-stone-300 rounded-xl text-sm"></select>
+                    </label>
+                    <label class="text-xs font-bold text-stone-700">Quantity
+                        <input id="posQuantity" type="number" min="1" max="99" value="1" required class="mt-1 block w-full p-3 border border-stone-300 rounded-xl text-sm">
+                    </label>
+                    <button type="submit" class="bg-brand-950 hover:bg-brand-600 text-white font-bold px-5 py-3 rounded-xl text-sm"><i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>Add item</button>
+                </form>
+                <ul id="posCartItems" class="divide-y divide-stone-200 text-sm" aria-live="polite"></ul>
+                <div class="grid sm:grid-cols-3 gap-3">
+                    <label class="text-xs font-bold text-stone-700">Customer name
+                        <input id="posCustomerName" type="text" maxlength="100" placeholder="Walk-in customer" class="mt-1 block w-full p-3 border border-stone-300 rounded-xl text-sm">
+                    </label>
+                    <label class="text-xs font-bold text-stone-700">Email (optional)
+                        <input id="posCustomerEmail" type="email" maxlength="254" placeholder="Leave blank for walk-in" class="mt-1 block w-full p-3 border border-stone-300 rounded-xl text-sm">
+                    </label>
+                    <label class="text-xs font-bold text-stone-700">Order type
+                        <select id="posCustomerType" class="mt-1 block w-full p-3 border border-stone-300 rounded-xl text-sm">
+                            <option value="Walk-in">Walk-in</option>
+                            <option value="Pickup">Pickup</option>
+                            <option value="Regular customer">Regular customer</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-4">
+                    <p class="font-bold">Counter total: <span id="posTotal">₱0.00</span></p>
+                    <button id="posCompleteOrder" type="button" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-5 py-3 rounded-xl text-sm"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>Complete order</button>
+                </div>
+                <p id="posMessage" class="hidden text-sm rounded-lg p-3" role="status" aria-live="polite"></p>
+            </section>
+
+            <section id="adminAnalytics" class="md:col-span-2 md:order-5 bg-white p-6 rounded-2xl border border-stone-200 space-y-5" aria-labelledby="adminAnalyticsTitle">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <div>
+                        <p class="text-brand-600 font-extrabold text-xs uppercase tracking-wider">Branch performance</p>
+                        <h3 id="adminAnalyticsTitle" class="font-bold text-lg text-stone-900">Sales analytics</h3>
+                    </div>
+                    <button id="refreshAdminAnalytics" type="button" class="border border-stone-300 hover:bg-stone-100 px-3 py-2 rounded-lg text-sm font-semibold"><i class="fa-solid fa-rotate mr-1" aria-hidden="true"></i>Refresh</button>
+                </div>
+                <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                    <article class="bg-stone-50 border border-stone-200 rounded-xl p-4"><p class="text-xs font-bold uppercase text-stone-500">Total revenue</p><p id="metricTotalRevenue" class="text-xl font-black text-stone-900 mt-1">₱0.00</p></article>
+                    <article class="bg-stone-50 border border-stone-200 rounded-xl p-4"><p class="text-xs font-bold uppercase text-stone-500">Total orders</p><p id="metricTotalOrders" class="text-xl font-black text-stone-900 mt-1">0</p></article>
+                    <article class="bg-stone-50 border border-stone-200 rounded-xl p-4"><p class="text-xs font-bold uppercase text-stone-500">Average order value</p><p id="metricAverageOrder" class="text-xl font-black text-stone-900 mt-1">₱0.00</p></article>
+                    <article class="bg-stone-50 border border-stone-200 rounded-xl p-4"><p class="text-xs font-bold uppercase text-stone-500">Seat reservation revenue</p><p id="metricSeatRevenue" class="text-xl font-black text-stone-900 mt-1">₱0.00</p></article>
+                </div>
+                <div class="grid md:grid-cols-2 gap-5">
+                    <div class="min-w-0 border border-stone-200 rounded-xl p-4"><h4 class="font-bold text-sm mb-3">Top selling categories</h4><div class="h-64"><canvas id="categorySalesChart" aria-label="Chart of sales by category"></canvas></div></div>
+                    <div class="min-w-0 border border-stone-200 rounded-xl p-4"><h4 class="font-bold text-sm mb-3">Top selling products</h4><div class="h-64"><canvas id="productSalesChart" aria-label="Chart of top selling products"></canvas></div></div>
+                    <div class="min-w-0 border border-stone-200 rounded-xl p-4 md:col-span-2"><h4 class="font-bold text-sm mb-3">Order status breakdown</h4><div class="h-64"><canvas id="orderStatusChart" aria-label="Chart of order status counts"></canvas></div></div>
+                </div>
+            </section>
+
+            <section id="adminInventory" class="md:col-span-2 md:order-4 bg-white p-6 rounded-2xl border border-stone-200 space-y-4" aria-labelledby="adminInventoryTitle">
+                <div class="flex flex-wrap justify-between items-center gap-3">
+                    <div>
+                        <p class="text-brand-600 font-extrabold text-xs uppercase tracking-wider">Stock control</p>
+                        <h3 id="adminInventoryTitle" class="font-bold text-lg text-stone-900">Inventory</h3>
+                        <p class="text-sm text-stone-500">On hand reflects saved non-cancelled orders and recorded restocks. Low stock is 8 units or fewer.</p>
+                    </div>
+                    <button id="quickRestockAll" type="button" class="border border-brand-600 text-brand-900 hover:bg-brand-50 px-4 py-2.5 rounded-lg text-sm font-bold"><i class="fa-solid fa-boxes-stacked mr-1" aria-hidden="true"></i>Quick restock all (+25)</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[36rem] text-sm text-left">
+                        <thead class="text-xs uppercase text-stone-500 border-b border-stone-200"><tr><th class="py-3 pr-4">Product</th><th class="py-3 px-3">Category</th><th class="py-3 px-3">On hand</th><th class="py-3 px-3">Restock</th><th class="py-3 pl-3">Action</th></tr></thead>
+                        <tbody id="inventoryTableBody" class="divide-y divide-stone-200"></tbody>
+                    </table>
+                </div>
+                <p id="inventoryMessage" class="hidden text-sm rounded-lg p-3" role="status" aria-live="polite"></p>
+            </section>
+
+            <section id="adminReports" class="md:order-7 bg-white p-6 rounded-2xl border border-stone-200 space-y-4" aria-labelledby="adminReportsTitle">
+                <div class="flex flex-wrap justify-between items-center gap-3">
+                    <div>
+                        <p class="text-brand-600 font-extrabold text-xs uppercase tracking-wider">Operations</p>
+                        <h3 id="adminReportsTitle" class="font-bold text-lg text-stone-900">Sales &amp; operations report</h3>
+                        <p class="text-sm text-stone-500">Compile order and seat activity, daily totals, and recorded admin actions.</p>
+                    </div>
+                    <button id="generateAdminReport" type="button" class="bg-brand-950 hover:bg-brand-600 text-white font-bold px-5 py-3 rounded-xl text-sm"><i class="fa-solid fa-file-lines mr-1" aria-hidden="true"></i>Generate &amp; print report</button>
+                </div>
+                <p id="reportStatus" class="text-sm text-stone-600" role="status" aria-live="polite">No report generated yet.</p>
+            </section>
+
+            <section id="reportPrintView" class="hidden md:col-span-2 bg-white text-black space-y-5" aria-label="Branch performance report"></section>
+
+            <section class="md:col-span-2 md:order-8 bg-white p-6 rounded-2xl border border-stone-200 space-y-4">
+                <h3 class="font-bold text-lg text-stone-900">Manage menu</h3>
+                <form id="productForm" class="grid sm:grid-cols-2 lg:grid-cols-[1fr_9rem_11rem_auto] gap-3 items-center">
+                    <label class="sr-only" for="productName">Product name</label>
+                    <input id="productName" type="text" maxlength="80" required placeholder="Product name" class="p-3 border border-stone-300 rounded-xl text-sm">
+                    <label class="sr-only" for="productPrice">Price in pesos</label>
+                    <input id="productPrice" type="number" min="1" max="100000" step="1" required placeholder="Price (₱)" class="p-3 border border-stone-300 rounded-xl text-sm">
+                    <label class="sr-only" for="productCategory">Product category</label>
+                    <select id="productCategory" class="p-3 border border-stone-300 rounded-xl text-sm">
+                        <option value="drink">Coffee &amp; drinks</option>
+                        <option value="food">Food</option>
+                    </select>
+                    <button id="productSubmit" type="submit" class="bg-brand-950 hover:bg-brand-600 text-white font-bold px-5 py-3 rounded-xl text-sm">Add product</button>
+                    <label class="sr-only" for="productDescription">Product description</label>
+                    <textarea id="productDescription" maxlength="240" rows="2" placeholder="Short menu description" class="sm:col-span-2 lg:col-span-4 p-3 border border-stone-300 rounded-xl text-sm"></textarea>
+                    <div class="sm:col-span-2 lg:col-span-4 flex flex-wrap items-center gap-4">
+                        <label for="productImageFile" class="inline-flex items-center gap-2 border border-stone-300 hover:bg-stone-50 px-4 py-2.5 rounded-lg text-sm font-semibold cursor-pointer">
+                            <i class="fa-solid fa-image" aria-hidden="true"></i>Import picture
+                        </label>
+                        <input id="productImageFile" type="file" accept="image/*" class="sr-only">
+                        <img id="productImagePreview" class="hidden w-20 h-20 object-cover rounded-lg border border-stone-200" alt="Product image preview">
+                        <p id="productImageHint" class="text-xs text-stone-500">Choose an image up to 8 MB. It will be resized for browser storage.</p>
+                    </div>
+                </form>
+                <p id="productMessage" class="hidden text-sm" role="status" aria-live="polite"></p>
+                <div id="adminMenuList" class="divide-y divide-stone-200"></div>
+            </section>
+
+            <section id="adminOrdersSection" class="md:order-9 bg-white p-6 rounded-2xl border border-stone-200 space-y-4">
+                <h3 class="font-bold text-lg text-stone-900">Customer order queue</h3>
+                <div id="adminOrdersList" class="divide-y divide-stone-200"></div>
+            </section>
+
+            <section class="md:order-10 bg-white p-6 rounded-2xl border border-stone-200 space-y-4">
+                <h3 class="font-bold text-lg text-stone-900">Customer messages</h3>
+                <div id="adminContactList" class="divide-y divide-stone-200"></div>
+            </section>
+        </section>
+    </section>
+
+    <section id="contact" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 no-print">
+        <div class="max-w-3xl mx-auto bg-white p-6 sm:p-8 border border-stone-200 rounded-2xl space-y-5">
+            <div>
+                <p class="text-brand-600 font-extrabold text-xs uppercase tracking-wider">Pup Coffee Ecoland</p>
+                <h2 class="text-2xl font-black text-stone-900 mt-1">Contact the branch</h2>
+            </div>
+            <form id="contactForm" class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="contactName" class="block text-xs font-bold text-stone-700 mb-1">Your name</label>
+                    <input id="contactName" type="text" maxlength="100" required class="w-full p-3 border border-stone-300 rounded-xl text-sm">
+                </div>
+                <div>
+                    <label for="contactEmail" class="block text-xs font-bold text-stone-700 mb-1">Email address</label>
+                    <input id="contactEmail" type="email" maxlength="254" required class="w-full p-3 border border-stone-300 rounded-xl text-sm">
+                </div>
+                <div class="sm:col-span-2">
+                    <label for="contactMessage" class="block text-xs font-bold text-stone-700 mb-1">Message</label>
+                    <textarea id="contactMessage" rows="4" maxlength="1000" required class="w-full p-3 border border-stone-300 rounded-xl text-sm"></textarea>
+                </div>
+                <button type="submit" class="sm:col-span-2 bg-brand-950 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-sm">Send message</button>
+            </form>
+            <p id="contactStatus" class="hidden text-sm p-3 rounded-lg" role="status" aria-live="polite"></p>
+        </div>
+    </section>
+
+    <div id="receiptModal" class="hidden fixed inset-0 z-[100] bg-black/60 p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
+        <div class="w-full max-w-md bg-white rounded-xl shadow-2xl p-6 space-y-5">
+            <div id="receiptContent" class="space-y-3"></div>
+            <div class="flex justify-end gap-3 no-print">
+                <button id="closeReceipt" type="button" class="border border-stone-300 hover:bg-stone-100 px-4 py-2 rounded-lg text-sm font-semibold">Close</button>
+                <button id="printReceipt" type="button" class="bg-brand-950 hover:bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-semibold"><i class="fa-solid fa-print mr-2" aria-hidden="true"></i>Print receipt</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="signOutModal" class="hidden fixed inset-0 z-[110] bg-black/60 p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="signOutTitle" aria-describedby="signOutDescription">
+        <div class="w-full max-w-sm bg-white rounded-xl shadow-2xl p-6 space-y-5">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 shrink-0 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center" aria-hidden="true">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </div>
+                <div>
+                    <h2 id="signOutTitle" class="text-lg font-black text-stone-900">Sign out?</h2>
+                    <p id="signOutDescription" class="text-sm text-stone-600 mt-1">Are you sure you want to sign out of Pup Coffee?</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button id="cancelSignOut" type="button" class="border border-stone-300 hover:bg-stone-100 text-stone-800 font-semibold px-4 py-2 rounded-lg text-sm">No, stay signed in</button>
+                <button id="confirmSignOut" type="button" class="bg-red-700 hover:bg-red-800 text-white font-bold px-4 py-2 rounded-lg text-sm">Yes, sign out</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="floatingCartButton" type="button" class="hidden fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-72 z-[80] bg-brand-950 hover:bg-brand-800 text-white px-5 py-3.5 rounded-xl shadow-xl border border-brand-800 items-center justify-between gap-3 no-print" aria-label="View your cart">
+        <span class="flex items-center gap-3"><span class="relative"><i class="fa-solid fa-basket-shopping text-lg" aria-hidden="true"></i><span id="floatingCartCount" class="absolute -top-2 -right-3 min-w-5 h-5 px-1 rounded-full bg-accent-400 text-brand-950 text-[10px] font-black flex items-center justify-center">0</span></span><span class="font-bold text-sm">View cart</span></span>
+        <span id="floatingCartTotal" class="font-extrabold text-sm">₱0.00</span>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script>
+        const authFormIds = {
+            'customer-login': 'customerLoginForm',
+            register: 'customerRegisterForm',
+            'admin-login': 'adminLoginForm'
+        };
+        const authTabs = document.querySelectorAll('.auth-tab');
+        const authForms = document.querySelectorAll('.auth-form');
+        const authMessage = document.getElementById('authMessage');
+        const cart = new Map();
+        const posCart = new Map();
+        const adminCharts = new Map();
+        const menuGrid = document.getElementById('menuGrid');
+        let currentUser = null;
+        let editingProductId = null;
+        let pendingProductImage = null;
+        let activeMenuFilter = 'all';
+        let featuredIndex = 0;
+        let featuredPaused = false;
+        let featuredPointerStart = null;
+        let favorites = new Set();
+        const defaultCatalog = [...document.querySelectorAll('.menu-card')].map((card, index) => ({
+            id: `initial-${index}`,
+            name: card.querySelector('h3').textContent.trim(),
+            price: Number(card.querySelector('h3').parentElement.querySelector('span').textContent.replace(/[^\d.]/g, '')),
+            description: card.querySelector('p').textContent.trim(),
+            category: /croissant|cheesecake/i.test(card.querySelector('h3').textContent) ? 'food' : 'drink',
+            image: card.querySelector('img').src,
+            alt: card.querySelector('img').alt
+        }));
+        const storedCatalog = readStoredArray('pupCoffeeMenu', defaultCatalog);
+        let catalog = storedCatalog.map((product) => {
+            const currentProduct = defaultCatalog.find((item) => item.name === product.name);
+            return {
+                ...product,
+                category: product.category === 'food' ? 'food' : (product.category === 'drink' ? 'drink' : currentProduct?.category || 'drink'),
+                image: product.image || currentProduct?.image || '',
+                alt: product.alt || currentProduct?.alt || product.name
+            };
+        });
+        try {
+            if (localStorage.getItem('pupCoffeeMenu')) {
+                localStorage.setItem('pupCoffeeMenu', JSON.stringify(catalog));
+            }
+        } catch {
+            catalog = storedCatalog;
+        }
+
+        function readStoredArray(key, fallback) {
+            try {
+                const stored = JSON.parse(localStorage.getItem(key));
+                return Array.isArray(stored) ? stored : fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
+        function saveArray(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        function getInventoryState() {
+            try {
+                return JSON.parse(localStorage.getItem('pupCoffeeInventory') || '{}');
+            } catch {
+                return {};
+            }
+        }
+
+        function getProductSoldQuantity(product) {
+            return getOrders().filter((order) => order.status !== 'Cancelled')
+                .flatMap((order) => order.items || [])
+                .filter((item) => item.productId === product.id || (!item.productId && item.name === product.name))
+                .reduce((total, item) => total + Math.max(0, Number(item.quantity) || 0), 0);
+        }
+
+        function getProductStock(product) {
+            const state = getInventoryState()[product.id] || { openingStock: 50, restocked: 0 };
+            return Math.max(0, Number(state.openingStock) || 0) + Math.max(0, Number(state.restocked) || 0) - getProductSoldQuantity(product);
+        }
+
+        function recordAdminAudit(action, details) {
+            const audit = readStoredArray('pupCoffeeAuditLog', []);
+            audit.push({ id: `AUD-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, at: new Date().toISOString(), actor: currentUser?.email || 'admin', action, details });
+            saveArray('pupCoffeeAuditLog', audit.slice(-500));
+        }
+
+        function renderPosProductOptions() {
+            const select = document.getElementById('posProductSelect');
+            const previousValue = select.value;
+            select.replaceChildren();
+            catalog.forEach((product) => {
+                const option = document.createElement('option');
+                const available = getProductStock(product) - (posCart.get(product.id)?.quantity || 0);
+                option.value = product.id;
+                option.textContent = `${product.name} · ${formatPrice(product.price)} · ${Math.max(0, available)} in stock`;
+                option.disabled = available <= 0;
+                select.append(option);
+            });
+            if ([...select.options].some((option) => option.value === previousValue && !option.disabled)) select.value = previousValue;
+        }
+
+        function renderPosCart() {
+            const list = document.getElementById('posCartItems');
+            list.replaceChildren();
+            let total = 0;
+            if (!posCart.size) {
+                const empty = document.createElement('li');
+                empty.className = 'py-3 text-stone-500';
+                empty.textContent = 'No counter items added.';
+                list.append(empty);
+            }
+            posCart.forEach((item, id) => {
+                total += item.price * item.quantity;
+                const row = document.createElement('li');
+                row.className = 'flex items-center justify-between gap-3 py-3';
+                const description = document.createElement('span');
+                description.textContent = `${item.quantity} × ${item.name}`;
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'text-red-700 hover:underline font-semibold';
+                remove.textContent = 'Remove';
+                remove.addEventListener('click', () => {
+                    posCart.delete(id);
+                    renderPosCart();
+                    renderPosProductOptions();
+                });
+                const amount = document.createElement('span');
+                amount.className = 'ml-auto font-semibold';
+                amount.textContent = formatPrice(item.price * item.quantity);
+                row.append(description, amount, remove);
+                list.append(row);
+            });
+            document.getElementById('posTotal').textContent = formatPrice(total);
+            renderPosProductOptions();
+        }
+
+        function renderAdminInventory() {
+            const body = document.getElementById('inventoryTableBody');
+            body.replaceChildren();
+            catalog.forEach((product) => {
+                const stock = getProductStock(product);
+                const row = document.createElement('tr');
+                const name = document.createElement('td');
+                name.className = 'py-3 pr-4 font-semibold';
+                name.textContent = product.name;
+                const category = document.createElement('td');
+                category.className = 'py-3 px-3 text-stone-600';
+                category.textContent = product.category === 'food' ? 'Food' : 'Drinks';
+                const quantity = document.createElement('td');
+                quantity.className = `py-3 px-3 font-bold ${stock <= 8 ? 'text-red-700' : 'text-stone-800'}`;
+                quantity.textContent = stock < 0 ? `${stock} · oversold` : `${stock}${stock <= 8 ? ' · Low stock' : ''}`;
+                const restockCell = document.createElement('td');
+                restockCell.className = 'py-3 px-3';
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.min = '1';
+                input.max = '9999';
+                input.value = '10';
+                input.className = 'w-20 p-2 border border-stone-300 rounded-lg';
+                input.setAttribute('aria-label', `Restock quantity for ${product.name}`);
+                restockCell.append(input);
+                const actionCell = document.createElement('td');
+                actionCell.className = 'py-3 pl-3';
+                const restock = document.createElement('button');
+                restock.type = 'button';
+                restock.className = 'border border-stone-300 hover:bg-stone-100 px-3 py-2 rounded-lg text-xs font-bold';
+                restock.textContent = 'Restock';
+                restock.addEventListener('click', () => restockProduct(product, Number(input.value)));
+                actionCell.append(restock);
+                row.append(name, category, quantity, restockCell, actionCell);
+                body.append(row);
+            });
+            renderPosProductOptions();
+        }
+
+        function restockProduct(product, amount) {
+            if (!Number.isInteger(amount) || amount < 1 || amount > 9999) return showInventoryMessage('Enter a restock quantity from 1 to 9,999.');
+            const inventory = getInventoryState();
+            const state = inventory[product.id] || { openingStock: 50, restocked: 0 };
+            state.restocked = (Number(state.restocked) || 0) + amount;
+            inventory[product.id] = state;
+            try {
+                localStorage.setItem('pupCoffeeInventory', JSON.stringify(inventory));
+            } catch {
+                return showInventoryMessage('Could not save inventory in this browser.');
+            }
+            recordAdminAudit('Restock', `${product.name}: +${amount}`);
+            showInventoryMessage(`${product.name} restocked by ${amount}.`, false);
+            renderAdminInventory();
+            renderAdminAnalytics();
+        }
+
+        function showInventoryMessage(message, isError = true) {
+            const element = document.getElementById('inventoryMessage');
+            element.textContent = message;
+            element.className = `text-sm rounded-lg p-3 ${isError ? 'bg-red-50 text-red-800' : 'bg-emerald-50 text-emerald-800'}`;
+        }
+
+        function renderAdminAnalytics() {
+            const orders = getOrders();
+            const activeOrders = orders.filter((order) => order.status !== 'Cancelled');
+            const orderRevenue = activeOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+            const seatRevenue = getSeatBookings().filter((booking) => booking.status !== 'Cancelled' && booking.paymentStatus === 'Paid')
+                .reduce((sum, booking) => sum + (Number(booking.seatFee) || 0), 0);
+            const revenue = orderRevenue + seatRevenue;
+            document.getElementById('metricTotalRevenue').textContent = formatPrice(revenue);
+            document.getElementById('metricTotalOrders').textContent = String(activeOrders.length);
+            document.getElementById('metricAverageOrder').textContent = formatPrice(activeOrders.length ? revenue / activeOrders.length : 0);
+            document.getElementById('metricSeatRevenue').textContent = formatPrice(seatRevenue);
+            if (!window.Chart) return;
+
+            const categoryCounts = new Map();
+            const productCounts = new Map();
+            activeOrders.forEach((order) => (order.items || []).forEach((item) => {
+                const product = catalog.find((entry) => entry.id === item.productId) || catalog.find((entry) => entry.name === item.name);
+                const category = product?.category === 'food' ? 'Food' : 'Coffee & drinks';
+                categoryCounts.set(category, (categoryCounts.get(category) || 0) + Number(item.quantity || 0));
+                productCounts.set(item.name, (productCounts.get(item.name) || 0) + Number(item.quantity || 0));
+            }));
+            const statusValues = ['Received', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
+            const statusCounts = statusValues.map((status) => orders.filter((order) => order.status === status).length);
+            const chartDefinitions = [
+                ['category', 'categorySalesChart', 'doughnut', [...categoryCounts.keys()], [...categoryCounts.values()]],
+                ['product', 'productSalesChart', 'bar', [...productCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name]) => name), [...productCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([, count]) => count)],
+                ['status', 'orderStatusChart', 'doughnut', statusValues, statusCounts]
+            ];
+            chartDefinitions.forEach(([key, canvasId, type, labels, values]) => {
+                adminCharts.get(key)?.destroy();
+                adminCharts.set(key, new Chart(document.getElementById(canvasId), {
+                    type,
+                    data: { labels, datasets: [{ data: values, backgroundColor: ['#91a83b', '#e8bf58', '#d06b56', '#567d83', '#a8a29e'], borderWidth: 1 }] },
+                    options: { responsive: true, maintainAspectRatio: false, indexAxis: key === 'product' ? 'y' : 'x', plugins: { legend: { display: type === 'doughnut', position: 'bottom' } }, scales: type === 'bar' ? { x: { beginAtZero: true, ticks: { precision: 0 } } } : {} }
+                }));
+            });
+        }
+
+        function renderAdminReports() {
+            const orders = getOrders();
+            const bookings = getSeatBookings();
+            const dailyTotals = new Map();
+            const dayKey = (value) => {
+                const date = new Date(value);
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            };
+            orders.forEach((order) => {
+                const day = dayKey(order.createdAt);
+                const entry = dailyTotals.get(day) || { orders: 0, revenue: 0, reservations: 0, seatRevenue: 0 };
+                if (order.status !== 'Cancelled') {
+                    entry.orders += 1;
+                    entry.revenue += Number(order.total) || 0;
+                }
+                dailyTotals.set(day, entry);
+            });
+            bookings.forEach((booking) => {
+                const day = dayKey(booking.createdAt);
+                const entry = dailyTotals.get(day) || { orders: 0, revenue: 0, reservations: 0, seatRevenue: 0 };
+                entry.reservations += 1;
+                if (booking.status !== 'Cancelled' && booking.paymentStatus === 'Paid') entry.seatRevenue += Number(booking.seatFee) || 0;
+                dailyTotals.set(day, entry);
+            });
+            const report = document.getElementById('reportPrintView');
+            report.replaceChildren();
+            const heading = document.createElement('h1');
+            heading.className = 'text-2xl font-black';
+            heading.textContent = 'Pup Coffee Ecoland Branch Performance Report';
+            const generated = document.createElement('p');
+            generated.textContent = `Generated ${new Date().toLocaleString()} by ${currentUser?.email || 'admin'}`;
+            const activity = document.createElement('p');
+            activity.textContent = `Store activity: ${orders.length} orders (${orders.filter((order) => order.status === 'Cancelled').length} cancelled), ${bookings.length} seat reservations (${bookings.filter((booking) => booking.status === 'Cancelled').length} cancelled).`;
+            const title = document.createElement('h2');
+            title.className = 'text-lg font-bold';
+            title.textContent = 'Daily totals';
+            const table = document.createElement('table');
+            table.className = 'daily-totals-table';
+            const head = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            ['Date', 'Orders', 'Sales', 'Reservations', 'Paid seat revenue'].forEach((label, index) => {
+                const cell = document.createElement('th');
+                cell.scope = 'col';
+                cell.textContent = label;
+                headerRow.append(cell);
+            });
+            head.append(headerRow);
+            const tableBody = document.createElement('tbody');
+            [...dailyTotals.entries()].sort((a, b) => b[0].localeCompare(a[0])).forEach(([day, totals]) => {
+                const row = document.createElement('tr');
+                [new Date(`${day}T12:00:00`).toLocaleDateString(), String(totals.orders), formatPrice(totals.revenue), String(totals.reservations), formatPrice(totals.seatRevenue)].forEach((value) => {
+                    const cell = document.createElement('td');
+                    cell.textContent = value;
+                    row.append(cell);
+                });
+                tableBody.append(row);
+            });
+            if (!dailyTotals.size) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.className = 'daily-totals-empty';
+                cell.colSpan = 5;
+                cell.textContent = 'No order or reservation activity yet.';
+                row.append(cell);
+                tableBody.append(row);
+            }
+            table.append(head, tableBody);
+            const tableWrap = document.createElement('div');
+            tableWrap.className = 'daily-totals-wrap';
+            tableWrap.append(table);
+            const auditTitle = document.createElement('h2');
+            auditTitle.className = 'text-lg font-bold';
+            auditTitle.textContent = 'Audit summary';
+            const auditList = document.createElement('ul');
+            auditList.className = 'space-y-1 text-sm';
+            const audit = readStoredArray('pupCoffeeAuditLog', []).slice(-25).reverse();
+            if (!audit.length) {
+                const entry = document.createElement('li');
+                entry.textContent = 'No recorded administrative actions yet.';
+                auditList.append(entry);
+            }
+            audit.forEach((event) => {
+                const entry = document.createElement('li');
+                entry.textContent = `${new Date(event.at).toLocaleString()} · ${event.actor} · ${event.action}: ${event.details}`;
+                auditList.append(entry);
+            });
+            const actions = document.createElement('div');
+            actions.className = 'no-report-print flex gap-2';
+            const print = document.createElement('button');
+            print.type = 'button';
+            print.className = 'bg-brand-950 text-white px-4 py-2 rounded-lg text-sm font-bold';
+            print.textContent = 'Print report';
+            print.addEventListener('click', () => {
+                document.body.classList.add('admin-report-print');
+                window.print();
+                window.setTimeout(() => document.body.classList.remove('admin-report-print'), 500);
+            });
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'border border-stone-300 px-4 py-2 rounded-lg text-sm font-bold';
+            close.textContent = 'Close preview';
+            close.addEventListener('click', () => report.classList.add('hidden'));
+            actions.append(print, close);
+            report.append(heading, generated, activity, title, tableWrap, auditTitle, auditList, actions);
+            report.classList.remove('hidden');
+            document.getElementById('reportStatus').textContent = `Report generated with ${dailyTotals.size} day${dailyTotals.size === 1 ? '' : 's'} of activity and ${audit.length} recent audit entr${audit.length === 1 ? 'y' : 'ies'}.`;
+        }
+
+        function setAuthView(view) {
+            const activeFormId = authFormIds[view];
+            authForms.forEach((form) => form.classList.toggle('hidden', form.id !== activeFormId));
+            authTabs.forEach((tab) => {
+                const isSelected = tab.dataset.authView === view;
+                tab.setAttribute('aria-selected', String(isSelected));
+                tab.classList.toggle('bg-brand-950', isSelected);
+                tab.classList.toggle('text-white', isSelected);
+                tab.classList.toggle('bg-stone-100', !isSelected);
+                tab.classList.toggle('text-stone-700', !isSelected);
+            });
+        }
+
+        function showAuthMessage(message, isError = true) {
+            authMessage.textContent = message;
+            authMessage.className = `text-sm p-3 rounded-lg ${isError ? 'bg-red-50 text-red-800 border border-red-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'}`;
+        }
+
+        function getAccounts() {
+            try {
+                return JSON.parse(localStorage.getItem('pupCoffeeAccounts') || '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        function enterDashboard(name, email, role, roleKey) {
+            currentUser = { name, email, roleKey };
+            document.getElementById('access').classList.add('signed-in');
+            document.getElementById('authPanel').classList.add('hidden');
+            document.getElementById('signedInPanel').classList.remove('hidden');
+            document.getElementById('signedInRole').textContent = role;
+            document.getElementById('signedInName').textContent = name;
+            document.getElementById('signedInEmail').textContent = email;
+            document.getElementById('siteNav').classList.remove('hidden');
+            ['hero', 'about', 'dashboard', 'contact'].forEach((id) => document.getElementById(id).classList.remove('hidden'));
+            document.getElementById('customerOrdersPanel').classList.toggle('hidden', roleKey !== 'customer');
+            document.getElementById('seatBooking').classList.toggle('hidden', roleKey !== 'customer');
+            document.getElementById('adminPanel').classList.toggle('hidden', roleKey !== 'admin');
+            document.getElementById('customerQuickLinks').classList.toggle('hidden', roleKey !== 'customer');
+            document.getElementById('floatingCartButton').classList.toggle('hidden', roleKey !== 'customer');
+            document.getElementById('floatingCartButton').classList.toggle('flex', roleKey === 'customer');
+            document.getElementById('publicNavLinks').classList.remove('hidden');
+            document.getElementById('publicNavLinks').classList.add('md:flex');
+            document.querySelectorAll('[data-nav-role]').forEach((link) => {
+                link.classList.toggle('hidden', link.dataset.navRole !== roleKey);
+            });
+            document.getElementById('accessNavLink').classList.add('hidden');
+            document.getElementById('navSignedInBadge').classList.remove('hidden');
+            document.getElementById('navSignedInBadge').classList.add('inline-flex');
+            document.getElementById('navSignOutBtn').classList.remove('hidden');
+            favorites = roleKey === 'customer' ? new Set(readStoredArray(`pupCoffeeFavorites:${email}`, [])) : new Set();
+            document.querySelector('[data-menu-filter="favorites"]').classList.toggle('hidden', roleKey !== 'customer');
+            if (roleKey !== 'customer' && activeMenuFilter === 'favorites') {
+                activeMenuFilter = 'all';
+                document.querySelector('[data-menu-filter="all"]').click();
+            }
+            document.getElementById('contactName').value = name;
+            document.getElementById('contactEmail').value = email;
+            setSeatScheduleDefaults();
+            renderProducts();
+            refreshRoleViews();
+            document.getElementById(roleKey === 'customer' ? 'hero' : 'adminPanel').scrollIntoView({ behavior: 'instant', block: 'start' });
+        }
+
+        function completeSignOut() {
+            currentUser = null;
+            document.getElementById('access').classList.remove('signed-in');
+            document.getElementById('authPanel').classList.remove('hidden');
+            document.getElementById('signedInPanel').classList.add('hidden');
+            document.getElementById('siteNav').classList.add('hidden');
+            ['hero', 'about', 'dashboard', 'contact', 'customerOrdersPanel', 'adminPanel'].forEach((id) => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('customerQuickLinks').classList.add('hidden');
+            document.getElementById('floatingCartButton').classList.add('hidden');
+            document.getElementById('floatingCartButton').classList.remove('flex');
+            document.getElementById('publicNavLinks').classList.remove('hidden');
+            document.getElementById('publicNavLinks').classList.add('md:flex');
+            document.querySelectorAll('[data-nav-role]').forEach((link) => link.classList.add('hidden'));
+            document.getElementById('accessNavLink').classList.remove('hidden');
+            document.getElementById('navSignedInBadge').classList.add('hidden');
+            document.getElementById('navSignedInBadge').classList.remove('inline-flex');
+            document.getElementById('navSignOutBtn').classList.add('hidden');
+            document.getElementById('customerLoginForm').reset();
+            document.getElementById('adminLoginForm').reset();
+            setAuthView('customer-login');
+            authMessage.classList.add('hidden');
+            cart.clear();
+            renderCart();
+            document.getElementById('access').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function signOut() {
+            document.getElementById('signOutModal').classList.remove('hidden');
+            document.getElementById('cancelSignOut').focus();
+        }
+
+        function closeSignOutDialog() {
+            document.getElementById('signOutModal').classList.add('hidden');
+        }
+
+        function formatPrice(amount) {
+            return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
+        }
+
+        function createImageFallback(productName) {
+            const fallback = document.createElement('div');
+            fallback.className = 'h-44 w-full bg-stone-200 flex items-center justify-center text-stone-500 text-sm font-semibold';
+            fallback.setAttribute('role', 'img');
+            fallback.setAttribute('aria-label', `${productName} image unavailable`);
+            fallback.textContent = productName;
+            return fallback;
+        }
+
+        function renderProducts() {
+            menuGrid.replaceChildren();
+            catalog.forEach((product) => {
+                const card = document.createElement('article');
+                card.className = 'menu-card bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 hover:shadow-md transition flex flex-col justify-between';
+                card.dataset.name = product.name.toLowerCase();
+                const media = product.image ? document.createElement('img') : createImageFallback(product.name);
+                if (media instanceof HTMLImageElement) {
+                    media.alt = product.alt || product.name;
+                    media.loading = 'lazy';
+                    media.className = 'h-44 w-full object-cover bg-stone-200';
+                    media.addEventListener('error', () => media.replaceWith(createImageFallback(product.name)), { once: true });
+                    media.src = product.image;
+                }
+                const content = document.createElement('div');
+                content.className = 'p-5 flex-1 flex flex-col justify-between space-y-3';
+                const details = document.createElement('div');
+                const headingRow = document.createElement('div');
+                headingRow.className = 'flex justify-between items-start gap-3';
+                const heading = document.createElement('h3');
+                heading.className = 'font-bold text-stone-900 text-base';
+                heading.textContent = product.name;
+                const price = document.createElement('span');
+                price.className = 'text-brand-600 font-extrabold shrink-0';
+                price.textContent = formatPrice(product.price);
+                headingRow.append(heading, price);
+                const category = document.createElement('span');
+                category.className = 'inline-flex mt-2 text-[11px] font-bold uppercase tracking-wide text-rose-800 bg-rose-50 px-2 py-1 rounded-full';
+                category.textContent = product.category === 'food' ? 'Fresh bites' : 'Coffee & drinks';
+                const description = document.createElement('p');
+                description.className = 'text-stone-500 text-xs mt-1';
+                description.textContent = product.description || 'Freshly prepared at Pup Coffee.';
+                details.append(headingRow, category, description);
+                const addButton = document.createElement('button');
+                addButton.type = 'button';
+                addButton.className = 'flex-1 bg-brand-950 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl transition text-sm';
+                addButton.textContent = 'Add to Order';
+                addButton.addEventListener('click', () => addToOrder(product.id, product.name, product.price));
+                const actions = document.createElement('div');
+                actions.className = 'flex gap-2';
+                const favoriteButton = createFavoriteButton(product);
+                actions.append(addButton, favoriteButton);
+                content.append(details, actions);
+                card.append(media, content);
+                menuGrid.append(card);
+            });
+            filterMenu();
+            renderHousePicks();
+            renderFeaturedProduct();
+            if (currentUser?.roleKey === 'admin') {
+                renderPosCart();
+                renderAdminInventory();
+                renderAdminAnalytics();
+            }
+        }
+
+        function renderFeaturedProduct() {
+            if (!catalog.length) return;
+            featuredIndex = featuredIndex % catalog.length;
+            const product = catalog[featuredIndex];
+            const carousel = document.getElementById('featuredCarousel');
+            carousel.classList.remove('featured-enter');
+            void carousel.offsetWidth;
+            carousel.classList.add('featured-enter');
+            const image = document.getElementById('featuredImage');
+            const imageFallback = document.getElementById('featuredImageFallback');
+            image.alt = product.alt || product.name;
+            image.classList.add('hidden');
+            imageFallback.classList.remove('hidden');
+            image.onload = () => {
+                image.classList.remove('hidden');
+                imageFallback.classList.add('hidden');
+            };
+            image.onerror = () => {
+                image.classList.add('hidden');
+                imageFallback.classList.remove('hidden');
+            };
+            if (product.image) image.src = product.image;
+            else image.removeAttribute('src');
+            document.getElementById('featuredCategory').textContent = product.category === 'food' ? 'Fresh bites' : 'Coffee & drinks';
+            document.getElementById('featuredName').textContent = product.name;
+            document.getElementById('featuredDescription').textContent = product.description || 'Freshly prepared at Pup Coffee.';
+            document.getElementById('featuredPrice').textContent = formatPrice(product.price);
+            const addButton = document.getElementById('featuredAddButton');
+            addButton.onclick = () => addToOrder(product.id, product.name, product.price);
+            const indicators = document.getElementById('featuredIndicators');
+            indicators.replaceChildren();
+            catalog.forEach((item, index) => {
+                const indicator = document.createElement('button');
+                indicator.type = 'button';
+                indicator.className = `h-2.5 rounded-full transition-all ${index === featuredIndex ? 'w-6 bg-accent-400' : 'w-2.5 bg-white/40 hover:bg-white/70'}`;
+                indicator.setAttribute('aria-label', `Show ${item.name}`);
+                indicator.setAttribute('aria-current', String(index === featuredIndex));
+                indicator.addEventListener('click', () => {
+                    featuredIndex = index;
+                    renderFeaturedProduct();
+                });
+                indicators.append(indicator);
+            });
+        }
+
+        function moveFeaturedProduct(direction) {
+            if (!catalog.length) return;
+            featuredIndex = (featuredIndex + direction + catalog.length) % catalog.length;
+            renderFeaturedProduct();
+        }
+
+        function createFavoriteButton(product) {
+            const isFavorite = favorites.has(product.id);
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `favorite-button border border-rose-200 hover:bg-rose-50 rounded-lg w-11 shrink-0 text-rose-700 ${isFavorite ? 'text-rose-600' : ''} ${currentUser?.roleKey === 'admin' ? 'hidden' : ''}`;
+            button.setAttribute('aria-label', `${isFavorite ? 'Remove' : 'Add'} ${product.name} ${isFavorite ? 'from' : 'to'} favorites`);
+            button.setAttribute('aria-pressed', String(isFavorite));
+            button.title = isFavorite ? 'Remove from favorites' : 'Add to favorites';
+            button.innerHTML = `<i class="fa-${isFavorite ? 'solid' : 'regular'} fa-heart" aria-hidden="true"></i>`;
+            button.addEventListener('click', () => {
+                if (currentUser?.roleKey !== 'customer') return;
+                if (favorites.has(product.id)) favorites.delete(product.id);
+                else favorites.add(product.id);
+                saveArray(`pupCoffeeFavorites:${currentUser.email}`, [...favorites]);
+                button.classList.remove('heart-pop');
+                void button.offsetWidth;
+                button.classList.add('heart-pop');
+                renderProducts();
+            });
+            return button;
+        }
+
+        function renderHousePicks() {
+            const picks = document.getElementById('housePicksList');
+            picks.replaceChildren();
+            const orderedCounts = new Map();
+            getOrders().forEach((order) => order.items.forEach((item) => {
+                orderedCounts.set(item.productId || item.name, (orderedCounts.get(item.productId || item.name) || 0) + item.quantity);
+            }));
+            const mostOrdered = [...catalog].sort((first, second) => {
+                const firstCount = orderedCounts.get(first.id) || orderedCounts.get(first.name) || 0;
+                const secondCount = orderedCounts.get(second.id) || orderedCounts.get(second.name) || 0;
+                const firstFavorite = favorites.has(first.id) ? 1 : 0;
+                const secondFavorite = favorites.has(second.id) ? 1 : 0;
+                return secondFavorite - firstFavorite || secondCount - firstCount;
+            }).slice(0, 3);
+
+            mostOrdered.forEach((product, index) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between gap-3 bg-white border border-rose-100 rounded-lg p-3';
+                const info = document.createElement('div');
+                const name = document.createElement('p');
+                name.className = 'font-bold text-sm text-stone-900';
+                name.textContent = product.name;
+                const badge = document.createElement('p');
+                badge.className = 'text-xs text-stone-500';
+                const orderCount = orderedCounts.get(product.id) || orderedCounts.get(product.name) || 0;
+                badge.textContent = favorites.has(product.id) ? 'Saved by you' : (orderCount ? `${orderCount} ordered` : (index === 0 ? 'House pick' : 'Customer favorite'));
+                info.append(name, badge);
+                const actions = document.createElement('div');
+                actions.className = 'flex gap-2';
+                const add = document.createElement('button');
+                add.type = 'button';
+                add.className = 'bg-brand-950 hover:bg-brand-600 text-white rounded-lg w-10 h-10';
+                add.setAttribute('aria-label', `Add ${product.name} to order`);
+                add.title = 'Add to order';
+                add.innerHTML = '<i class="fa-solid fa-plus" aria-hidden="true"></i>';
+                add.addEventListener('click', () => addToOrder(product.id, product.name, product.price));
+                actions.append(add, createFavoriteButton(product));
+                item.append(info, actions);
+                picks.append(item);
+            });
+        }
+
+        function updatePasswordStrength() {
+            const password = document.getElementById('registerPassword').value;
+            const container = document.getElementById('strengthContainer');
+            const fill = document.getElementById('strengthFill');
+            const label = document.getElementById('strengthLabel');
+            const scoreText = document.getElementById('strengthScore');
+            const hint = document.getElementById('strengthHint');
+
+            container.classList.toggle('hidden', password.length === 0);
+            if (!password) return;
+
+            const checks = [
+                password.length >= 8,
+                /[a-z]/.test(password),
+                /[A-Z]/.test(password),
+                /\d/.test(password),
+                /[^A-Za-z0-9]/.test(password)
+            ];
+            const score = checks.filter(Boolean).length;
+            const levels = [
+                ['Very weak', 'bg-red-600', 'Use at least 8 characters.'],
+                ['Weak', 'bg-red-500', 'Add lowercase, uppercase, numbers, or symbols.'],
+                ['Fair', 'bg-orange-500', 'Add more character types to strengthen it.'],
+                ['Good', 'bg-amber-500', 'Almost there; add another character type.'],
+                ['Strong', 'bg-lime-600', 'Good mix of length and character types.'],
+                ['Very strong', 'bg-emerald-600', 'Strong password pattern.']
+            ];
+            const [level, color, suggestion] = levels[score];
+
+            label.textContent = `Strength: ${level}`;
+            scoreText.textContent = `${score} / 5`;
+            hint.textContent = suggestion;
+            fill.style.width = `${score * 20}%`;
+            fill.className = `strength-fill h-full ${color}`;
+        }
+
+        function filterMenu() {
+            const query = document.getElementById('menuSearch').value.trim().toLowerCase();
+            document.querySelectorAll('.menu-card').forEach((card, index) => {
+                const product = catalog[index];
+                const searchableText = `${card.dataset.name} ${card.textContent}`.toLowerCase();
+                const matchesFilter = activeMenuFilter === 'all'
+                    || (activeMenuFilter === 'favorites' ? favorites.has(product.id) : product.category === activeMenuFilter);
+                card.classList.toggle('hidden', !searchableText.includes(query) || !matchesFilter);
+            });
+        }
+
+        document.querySelectorAll('.menu-filter').forEach((button) => {
+            button.addEventListener('click', () => {
+                activeMenuFilter = button.dataset.menuFilter;
+                document.querySelectorAll('.menu-filter').forEach((filterButton) => {
+                    const selected = filterButton === button;
+                    filterButton.setAttribute('aria-pressed', String(selected));
+                    filterButton.classList.toggle('bg-brand-950', selected);
+                    filterButton.classList.toggle('text-white', selected);
+                    filterButton.classList.toggle('bg-white', !selected);
+                    filterButton.classList.toggle('border', !selected);
+                    filterButton.classList.toggle('border-stone-300', !selected);
+                    filterButton.classList.toggle('text-stone-700', !selected);
+                });
+                filterMenu();
+            });
+        });
+
+        function renderCart() {
+            const itemsList = document.getElementById('cartItems');
+            const itemCount = [...cart.values()].reduce((total, item) => total + item.quantity, 0);
+            const total = [...cart.values()].reduce((sum, item) => sum + item.price * item.quantity, 0);
+            itemsList.replaceChildren();
+            document.getElementById('cartCount').textContent = `${itemCount} ${itemCount === 1 ? 'item' : 'items'}`;
+            document.getElementById('cartTotal').textContent = formatPrice(total);
+            document.getElementById('floatingCartCount').textContent = String(itemCount);
+            document.getElementById('floatingCartTotal').textContent = formatPrice(total);
+
+            if (cart.size === 0) {
+                const emptyMessage = document.createElement('li');
+                emptyMessage.className = 'text-stone-500';
+                emptyMessage.textContent = 'Your order is empty.';
+                itemsList.append(emptyMessage);
+                return;
+            }
+
+            cart.forEach((item, id) => {
+                const row = document.createElement('li');
+                row.className = 'grid grid-cols-[1fr_auto] gap-3 items-center';
+                const controls = document.createElement('div');
+                controls.className = 'flex items-center gap-2';
+                const description = document.createElement('span');
+                description.className = 'min-w-0';
+                description.textContent = `${item.quantity} × ${item.name}`;
+                const lineTotal = document.createElement('span');
+                lineTotal.className = 'shrink-0 font-semibold';
+                lineTotal.textContent = formatPrice(item.quantity * item.price);
+                const decrement = document.createElement('button');
+                decrement.type = 'button';
+                decrement.className = 'border border-stone-300 hover:bg-stone-100 rounded aspect-square w-9 font-bold';
+                decrement.setAttribute('aria-label', `Decrease ${item.name} quantity`);
+                decrement.title = 'Decrease quantity';
+                decrement.innerHTML = '<i class="fa-solid fa-minus" aria-hidden="true"></i>';
+                decrement.addEventListener('click', () => updateCartQuantity(id, -1));
+                const increment = document.createElement('button');
+                increment.type = 'button';
+                increment.className = 'border border-stone-300 hover:bg-stone-100 rounded aspect-square w-9 font-bold';
+                increment.setAttribute('aria-label', `Increase ${item.name} quantity`);
+                increment.title = 'Increase quantity';
+                increment.innerHTML = '<i class="fa-solid fa-plus" aria-hidden="true"></i>';
+                increment.addEventListener('click', () => updateCartQuantity(id, 1));
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'text-red-700 hover:text-red-900 text-xs font-semibold';
+                remove.setAttribute('aria-label', `Remove ${item.name}`);
+                remove.textContent = 'Remove';
+                remove.addEventListener('click', () => removeFromCart(id));
+                controls.append(decrement, increment, remove);
+                row.append(description, lineTotal, controls);
+                itemsList.append(row);
+            });
+        }
+
+        function addToOrder(id, name, price) {
+            const item = cart.get(id) || { name, price, quantity: 0 };
+            item.quantity += 1;
+            cart.set(id, item);
+            document.getElementById('orderMessage').classList.add('hidden');
+            renderCart();
+        }
+
+        function updateCartQuantity(id, difference) {
+            const item = cart.get(id);
+            if (!item) return;
+            item.quantity += difference;
+            if (item.quantity <= 0) cart.delete(id);
+            renderCart();
+        }
+
+        function removeFromCart(id) {
+            cart.delete(id);
+            renderCart();
+        }
+
+        function getOrders() {
+            return readStoredArray('pupCoffeeOrders', []);
+        }
+
+        function getSeatBookings() {
+            return readStoredArray('pupCoffeeSeatBookings', []);
+        }
+
+        function getTableCapacity() {
+            const capacity = Number(localStorage.getItem('pupCoffeeOpenTables') || 4);
+            return Number.isFinite(capacity) ? Math.max(0, Math.min(20, capacity)) : 4;
+        }
+
+        function getSeatRate() {
+            const rate = Number(localStorage.getItem('pupCoffeeSeatRate') || 0);
+            return Number.isFinite(rate) ? Math.max(0, Math.min(10000, rate)) : 0;
+        }
+
+        function calculateSeatFee(timeIn, timeOut, partySize, rate = getSeatRate()) {
+            const hours = (new Date(timeOut) - new Date(timeIn)) / (60 * 60 * 1000);
+            return Math.round(Math.max(0, hours * partySize * rate) * 100) / 100;
+        }
+
+        function updateSeatFeeEstimate() {
+            const rate = getSeatRate();
+            const partySize = Number(document.getElementById('seatPartySize').value) || 1;
+            const timeIn = document.getElementById('seatTimeIn').value;
+            const timeOut = document.getElementById('seatTimeOut').value;
+            document.getElementById('seatFeeRateLabel').textContent = rate > 0 ? `${formatPrice(rate)} per person/hour` : 'Free';
+            const estimate = calculateSeatFee(timeIn, timeOut, partySize, rate);
+            document.getElementById('seatFeeEstimate').textContent = `Estimated seat fee: ${estimate > 0 ? formatPrice(estimate) : 'Free'}${rate > 0 ? ' · Payable at the cafe' : ''}`;
+        }
+
+        function bookingOverlaps(first, second) {
+            return new Date(first.timeIn) < new Date(second.timeOut) && new Date(first.timeOut) > new Date(second.timeIn);
+        }
+
+        function reconcileSeatBookings() {
+            const bookings = getSeatBookings();
+            const now = Date.now();
+            let changed = false;
+            bookings.forEach((booking) => {
+                if (['Reserved', 'Occupied'].includes(booking.status) && new Date(booking.timeOut).getTime() <= now) {
+                    booking.status = 'Completed';
+                    changed = true;
+                } else if (booking.status === 'Reserved' && new Date(booking.timeIn).getTime() <= now) {
+                    booking.status = 'Occupied';
+                    changed = true;
+                }
+            });
+
+            if (changed) saveArray('pupCoffeeSeatBookings', bookings);
+            return bookings;
+        }
+
+        function setSeatScheduleDefaults() {
+            const now = new Date();
+            now.setMinutes(Math.ceil((now.getMinutes() + 1) / 15) * 15, 0, 0);
+            const later = new Date(now.getTime() + 60 * 60 * 1000);
+            const toLocalInput = (date) => {
+                const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                return local.toISOString().slice(0, 16);
+            };
+            document.getElementById('seatTimeIn').min = toLocalInput(now);
+            document.getElementById('seatTimeIn').value = toLocalInput(now);
+            document.getElementById('seatTimeOut').min = toLocalInput(new Date(now.getTime() + 15 * 60 * 1000));
+            document.getElementById('seatTimeOut').value = toLocalInput(later);
+            updateSeatFeeEstimate();
+        }
+
+        function formatBookingTime(value) {
+            return new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+        }
+
+        function formatSeatBookingStatus(status) {
+            return ({
+                Waiting: 'Pending admin approval',
+                Reserved: 'Approved',
+                Delayed: 'Delayed: no vacant seats',
+                Occupied: 'Approved · in progress',
+                Completed: 'Completed',
+                Cancelled: 'Cancelled'
+            })[status] || status;
+        }
+
+        function createLinkedOrder(bookingId = null) {
+            if (cart.size === 0) return null;
+            const items = [...cart.entries()].map(([productId, item]) => ({ ...item, productId }));
+            return {
+                id: `PUP-${Date.now()}`,
+                customerName: currentUser.name,
+                customerEmail: currentUser.email,
+                items,
+                total: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+                status: 'Received',
+                bookingId,
+                createdAt: new Date().toISOString()
+            };
+        }
+
+        function renderCustomerBookings() {
+            const list = document.getElementById('customerBookingsList');
+            list.replaceChildren();
+            if (currentUser?.roleKey !== 'customer') return;
+            const bookings = reconcileSeatBookings().filter((booking) => booking.customerEmail === currentUser.email)
+                .sort((first, second) => second.createdAt.localeCompare(first.createdAt));
+            if (!bookings.length) {
+                list.className = 'divide-y divide-stone-200 text-sm text-stone-500';
+                list.textContent = 'No seat bookings yet.';
+                return;
+            }
+            list.className = 'divide-y divide-stone-200';
+            bookings.forEach((booking) => {
+                const row = document.createElement('div');
+                row.className = 'flex flex-wrap justify-between items-center gap-3 py-3';
+                const details = document.createElement('p');
+                details.className = 'text-sm';
+                const fee = Number(booking.seatFee || 0);
+                details.textContent = `${booking.id} · ${booking.groupType || (booking.partySize === 1 ? 'Solo' : 'Group')} · ${booking.partySize} ${booking.partySize === 1 ? 'seat' : 'seats'} · ${booking.occasion || 'Casual cafe visit'} · ${formatBookingTime(booking.timeIn)} to ${formatBookingTime(booking.timeOut)} · ${fee > 0 ? `Seat fee ${formatPrice(fee)} (${booking.paymentStatus === 'Paid' ? 'paid at cafe' : 'pay at cafe'})` : 'Free seat'}${booking.orderId ? ` · Order ${booking.orderId}` : ''}`;
+                const status = document.createElement('span');
+                status.className = `rounded-full px-3 py-1 text-xs font-bold ${booking.status === 'Reserved' || booking.status === 'Occupied' ? 'bg-emerald-100 text-emerald-800' : booking.status === 'Cancelled' ? 'bg-red-100 text-red-800' : booking.status === 'Delayed' ? 'bg-orange-100 text-orange-800' : 'bg-amber-100 text-amber-900'}`;
+                status.textContent = formatSeatBookingStatus(booking.status);
+                row.append(details, status);
+                if (booking.statusNote) {
+                    const note = document.createElement('p');
+                    note.className = 'w-full text-xs text-stone-500';
+                    note.textContent = booking.statusNote;
+                    row.append(note);
+                }
+                if (['Waiting', 'Reserved', 'Delayed'].includes(booking.status)) {
+                    const cancel = document.createElement('button');
+                    cancel.type = 'button';
+                    cancel.className = 'text-red-700 hover:underline font-semibold text-sm';
+                    cancel.textContent = 'Cancel booking';
+                    cancel.addEventListener('click', () => {
+                        const saved = getSeatBookings().map((entry) => entry.id === booking.id ? { ...entry, status: 'Cancelled' } : entry);
+                        if (saveArray('pupCoffeeSeatBookings', saved)) refreshRoleViews();
+                    });
+                    row.append(cancel);
+                }
+                list.append(row);
+            });
+        }
+
+        function renderAdminSeatBookings() {
+            const list = document.getElementById('adminBookingsList');
+            const bookings = reconcileSeatBookings().sort((first, second) => {
+                const activeOrder = (booking) => booking.status === 'Waiting' ? 0 : booking.status === 'Delayed' ? 1 : (['Reserved', 'Occupied'].includes(booking.status) ? 2 : 3);
+                return activeOrder(first) - activeOrder(second) || first.createdAt.localeCompare(second.createdAt);
+            });
+            const active = bookings.filter((booking) => ['Reserved', 'Occupied'].includes(booking.status));
+            const occupied = active.filter((booking) => booking.status === 'Occupied')
+                .reduce((total, booking) => total + Number(booking.partySize || 1), 0);
+            document.getElementById('adminSeatSummary').textContent = `${occupied} occupied now · ${getTableCapacity()} total seats · ${bookings.filter((booking) => booking.status === 'Waiting').length} pending approval · ${bookings.filter((booking) => booking.status === 'Delayed').length} delayed`;
+            list.replaceChildren();
+            if (!bookings.length) {
+                list.className = 'divide-y divide-stone-200 text-sm text-stone-500';
+                list.textContent = 'No seat bookings yet.';
+                return;
+            }
+            list.className = 'divide-y divide-stone-200';
+            bookings.forEach((booking, index) => {
+                const row = document.createElement('div');
+                row.className = 'flex flex-wrap justify-between items-center gap-3 py-3';
+                const details = document.createElement('div');
+                details.className = 'space-y-1';
+                const customer = document.createElement('p');
+                customer.className = 'font-semibold text-sm';
+                customer.textContent = `${booking.status === 'Waiting' || booking.status === 'Delayed' ? `Needs attention · ` : ''}${booking.customerName} · ${booking.partySize} ${booking.partySize === 1 ? 'seat' : 'seats'} · ${formatSeatBookingStatus(booking.status)}`;
+                const schedule = document.createElement('p');
+                schedule.className = 'text-xs text-stone-500';
+                const fee = Number(booking.seatFee || 0);
+                schedule.textContent = `${booking.groupType || (booking.partySize === 1 ? 'Solo' : 'Group')} · ${booking.occasion || 'Casual cafe visit'} · ${booking.customerEmail} · ${formatBookingTime(booking.timeIn)} to ${formatBookingTime(booking.timeOut)} · ${fee > 0 ? `Seat fee ${formatPrice(fee)} (${booking.paymentStatus === 'Paid' ? 'paid at cafe' : 'unpaid at cafe'})` : 'Free seat'}${booking.orderId ? ` · Order ${booking.orderId}` : ''}`;
+                details.append(customer, schedule);
+                if (booking.statusNote) {
+                    const note = document.createElement('p');
+                    note.className = 'text-xs text-orange-800';
+                    note.textContent = `Customer message: ${booking.statusNote}`;
+                    details.append(note);
+                }
+                const status = document.createElement('select');
+                status.className = 'border border-stone-300 rounded-lg p-2 text-sm';
+                status.setAttribute('aria-label', `Update seat status for ${booking.id}`);
+                [['Waiting', 'Pending admin approval'], ['Reserved', 'Approve booking'], ['Delayed', 'Delay: no vacant seats'], ['Occupied', 'Mark occupied'], ['Completed', 'Complete booking'], ['Cancelled', 'Cancel booking']].forEach(([value, label]) => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = label;
+                    option.selected = booking.status === value;
+                    status.append(option);
+                });
+                status.addEventListener('change', () => {
+                    const updated = getSeatBookings();
+                    const target = updated.find((entry) => entry.id === booking.id);
+                    if (!target) return;
+                    const previousStatus = target.status;
+                    const nextStatus = status.value;
+                    if (['Reserved', 'Occupied'].includes(nextStatus)) {
+                        const alreadyAllocated = updated.filter((entry) => entry.id !== booking.id && ['Reserved', 'Occupied'].includes(entry.status) && bookingOverlaps(entry, target))
+                            .reduce((total, entry) => total + Number(entry.partySize || 1), 0);
+                        if (alreadyAllocated + Number(target.partySize || 1) > getTableCapacity()) {
+                            const previousStatus = target.status;
+                            target.status = 'Delayed';
+                            target.statusNote = 'No vacant seats for the selected time. Please choose another time or wait for an update.';
+                            if (saveArray('pupCoffeeSeatBookings', updated)) {
+                                recordAdminAudit('Seat status', `${booking.id}: ${previousStatus} to Delayed (no vacant seats)`);
+                                refreshRoleViews();
+                            }
+                            window.alert('No vacant seats for this time. The booking is delayed and the customer can see the update in My bookings.');
+                            return;
+                        }
+                    }
+                    target.status = nextStatus;
+                    target.statusNote = nextStatus === 'Delayed' ? 'No vacant seats for the selected time. Please choose another time or wait for an update.' : '';
+                    if (saveArray('pupCoffeeSeatBookings', updated)) {
+                        recordAdminAudit('Seat status', `${booking.id}: ${previousStatus} to ${nextStatus}`);
+                        refreshRoleViews();
+                    }
+                });
+                const controls = document.createElement('div');
+                controls.className = 'flex flex-wrap items-center gap-2';
+                controls.append(status);
+                if (Number(booking.seatFee || 0) > 0) {
+                    const payment = document.createElement('select');
+                    payment.className = 'border border-stone-300 rounded-lg p-2 text-sm';
+                    payment.setAttribute('aria-label', `Update cafe payment for ${booking.id}`);
+                    [['Unpaid', 'Unpaid'], ['Paid', 'Paid at cafe']].forEach(([value, label]) => {
+                        const option = document.createElement('option');
+                        option.value = value;
+                        option.textContent = label;
+                        option.selected = (booking.paymentStatus || 'Unpaid') === value;
+                        payment.append(option);
+                    });
+                    payment.addEventListener('change', () => {
+                        const previousPayment = booking.paymentStatus || 'Unpaid';
+                        const updated = getSeatBookings().map((entry) => entry.id === booking.id ? { ...entry, paymentStatus: payment.value } : entry);
+                        if (saveArray('pupCoffeeSeatBookings', updated)) {
+                            recordAdminAudit('Seat payment', `${booking.id}: ${previousPayment} to ${payment.value}`);
+                            refreshRoleViews();
+                        }
+                    });
+                    controls.append(payment);
+                }
+                row.append(details, controls);
+                list.append(row);
+            });
+        }
+
+        function getContactMessages() {
+            return readStoredArray('pupCoffeeMessages', []);
+        }
+
+        function openReceipt(order) {
+            const canPrintReceipt = currentUser?.roleKey === 'admin';
+            const receipt = document.getElementById('receiptContent');
+            receipt.replaceChildren();
+            const title = document.createElement('h2');
+            title.id = 'receiptTitle';
+            title.className = 'text-xl font-black text-stone-900';
+            title.textContent = 'Pup Coffee receipt';
+            const metadata = document.createElement('p');
+            metadata.className = 'text-sm text-stone-600';
+            metadata.textContent = `Order ${order.id} · ${new Date(order.createdAt).toLocaleString()}`;
+            const customer = document.createElement('p');
+            customer.className = 'text-sm';
+            customer.textContent = `${order.customerName} · ${order.customerEmail}`;
+            const lines = document.createElement('div');
+            lines.className = 'border-y border-stone-300 py-3 space-y-2';
+            order.items.forEach((item) => {
+                const line = document.createElement('div');
+                line.className = 'flex justify-between gap-4 text-sm';
+                const name = document.createElement('span');
+                name.textContent = `${item.quantity} × ${item.name}`;
+                const amount = document.createElement('span');
+                amount.textContent = formatPrice(item.quantity * item.price);
+                line.append(name, amount);
+                lines.append(line);
+            });
+            const total = document.createElement('p');
+            total.className = 'flex justify-between font-bold';
+            total.innerHTML = `<span>Total</span><span>${formatPrice(order.total)}</span>`;
+            receipt.append(title, metadata, customer, lines, total);
+            document.getElementById('printReceipt').classList.toggle('hidden', !canPrintReceipt);
+            document.body.classList.toggle('admin-print-mode', canPrintReceipt);
+            document.getElementById('receiptModal').classList.remove('hidden');
+        }
+
+        function refreshRoleViews() {
+            updateSeatAvailability();
+            renderCustomerOrders();
+            renderCustomerBookings();
+            if (currentUser?.roleKey === 'admin') {
+                renderAdminOrders();
+                renderAdminMenu();
+                renderAdminMessages();
+                renderPosCart();
+                renderAdminInventory();
+                renderAdminAnalytics();
+                const tables = getTableCapacity();
+                const sockets = Number(localStorage.getItem('pupCoffeeOpenSockets') || 2);
+                document.getElementById('adminTableCount').textContent = String(tables);
+                document.getElementById('adminSocketCount').textContent = String(sockets);
+                document.getElementById('seatRateInput').value = String(getSeatRate());
+                renderAdminSeatBookings();
+                document.getElementById('openSocketsStatus').textContent = `${sockets} Available`;
+            }
+        }
+
+        function updateSeatAvailability() {
+            const occupied = reconcileSeatBookings().filter((booking) => booking.status === 'Occupied')
+                .reduce((total, booking) => total + Number(booking.partySize || 1), 0);
+            const vacant = Math.max(0, getTableCapacity() - occupied);
+            const status = document.getElementById('openTablesStatus');
+            status.textContent = `${vacant} vacant now`;
+            status.className = vacant > 0 ? 'text-emerald-400' : 'text-red-400';
+        }
+
+        function renderCustomerOrders() {
+            const list = document.getElementById('customerOrdersList');
+            if (!currentUser || currentUser.roleKey !== 'customer') return;
+            list.replaceChildren();
+            const orders = getOrders().filter((order) => order.customerEmail === currentUser.email);
+            if (!orders.length) {
+                list.textContent = 'No orders yet.';
+                list.className = 'divide-y divide-stone-200 text-sm text-stone-500';
+                return;
+            }
+            list.className = 'divide-y divide-stone-200';
+            orders.reverse().forEach((order) => {
+                const row = document.createElement('article');
+                row.className = 'py-4 space-y-3';
+                const details = document.createElement('p');
+                details.className = 'font-semibold text-sm';
+                details.textContent = `${order.id} · ${new Date(order.createdAt).toLocaleString()} · ${formatPrice(order.total)} · ${order.status}`;
+                const items = document.createElement('p');
+                items.className = 'text-sm text-stone-600';
+                items.textContent = order.items.map((item) => `${item.quantity} × ${item.name}`).join(', ');
+                const actions = document.createElement('div');
+                actions.className = 'flex flex-wrap gap-3 items-center';
+                const receiptButton = document.createElement('button');
+                receiptButton.type = 'button';
+                receiptButton.className = 'text-brand-800 hover:underline font-semibold text-sm';
+                receiptButton.innerHTML = '<i class="fa-solid fa-receipt mr-1" aria-hidden="true"></i>View order';
+                receiptButton.addEventListener('click', () => openReceipt(order));
+
+                if (order.status === 'Received') {
+                    const cancelButton = document.createElement('button');
+                    cancelButton.type = 'button';
+                    cancelButton.className = 'text-red-700 hover:underline font-semibold text-sm';
+                    cancelButton.innerHTML = '<i class="fa-solid fa-ban mr-1" aria-hidden="true"></i>Cancel order';
+                    cancelButton.addEventListener('click', () => cancelCustomerOrder(order.id));
+                    actions.append(cancelButton);
+                }
+
+                if (order.review) {
+                    const savedReview = document.createElement('p');
+                    savedReview.className = 'text-sm text-stone-600';
+                    savedReview.textContent = `Your review: ${'★'.repeat(order.review.rating)}${'☆'.repeat(5 - order.review.rating)}${order.review.comment ? ` · ${order.review.comment}` : ''}`;
+                    actions.append(receiptButton, savedReview);
+                } else {
+                    const reviewButton = document.createElement('button');
+                    reviewButton.type = 'button';
+                    reviewButton.className = 'text-brand-800 hover:underline font-semibold text-sm';
+                    reviewButton.innerHTML = '<i class="fa-solid fa-star mr-1" aria-hidden="true"></i>Review order';
+                    reviewButton.addEventListener('click', () => {
+                        const existingForm = row.querySelector('form');
+                        if (existingForm) {
+                            existingForm.remove();
+                            return;
+                        }
+                        row.append(createReviewForm(order));
+                    });
+                    actions.append(receiptButton, reviewButton);
+                }
+
+                row.append(details, items, actions);
+                list.append(row);
+            });
+        }
+
+        function cancelCustomerOrder(orderId) {
+            const orders = getOrders();
+            const order = orders.find((entry) => entry.id === orderId && entry.customerEmail === currentUser?.email);
+            if (!order || order.status !== 'Received') return;
+            if (!window.confirm('Cancel this order?')) return;
+            order.status = 'Cancelled';
+            if (saveArray('pupCoffeeOrders', orders)) refreshRoleViews();
+        }
+
+        function createReviewForm(order) {
+            const form = document.createElement('form');
+            form.className = 'grid sm:grid-cols-[10rem_1fr_auto] gap-3 items-end';
+            const ratingLabel = document.createElement('label');
+            ratingLabel.className = 'text-xs font-bold text-stone-700 space-y-1';
+            ratingLabel.textContent = 'Rating';
+            const rating = document.createElement('select');
+            rating.required = true;
+            rating.className = 'block w-full p-2.5 border border-stone-300 rounded-lg text-sm';
+            rating.setAttribute('aria-label', 'Order rating');
+            for (let score = 5; score >= 1; score -= 1) {
+                const option = document.createElement('option');
+                option.value = String(score);
+                option.textContent = `${score} ${score === 1 ? 'star' : 'stars'}`;
+                rating.append(option);
+            }
+            ratingLabel.append(rating);
+            const comment = document.createElement('textarea');
+            comment.maxLength = 500;
+            comment.rows = 2;
+            comment.placeholder = 'Add a short comment (optional)';
+            comment.className = 'w-full p-2.5 border border-stone-300 rounded-lg text-sm';
+            comment.setAttribute('aria-label', 'Review comment');
+            const submit = document.createElement('button');
+            submit.type = 'submit';
+            submit.className = 'bg-brand-950 hover:bg-brand-600 text-white font-semibold px-4 py-2.5 rounded-lg text-sm';
+            submit.textContent = 'Save review';
+            form.append(ratingLabel, comment, submit);
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const saved = getOrders().map((entry) => entry.id === order.id && entry.customerEmail === currentUser?.email
+                    ? { ...entry, review: { rating: Number(rating.value), comment: comment.value.trim(), createdAt: new Date().toISOString() } }
+                    : entry);
+                if (saveArray('pupCoffeeOrders', saved)) refreshRoleViews();
+            });
+            return form;
+        }
+
+        function renderAdminOrders() {
+            const list = document.getElementById('adminOrdersList');
+            list.replaceChildren();
+            const orders = getOrders();
+            if (!orders.length) {
+                list.textContent = 'No customer orders yet.';
+                list.className = 'divide-y divide-stone-200 text-sm text-stone-500';
+                return;
+            }
+            list.className = 'divide-y divide-stone-200';
+            orders.slice().reverse().forEach((order) => {
+                const row = document.createElement('div');
+                row.className = 'flex flex-wrap justify-between items-start gap-3 py-4';
+                const customerInfo = document.createElement('div');
+                customerInfo.className = 'space-y-1';
+                const details = document.createElement('p');
+                details.className = 'font-semibold text-sm';
+                details.textContent = `${order.id} · ${order.customerName} · ${formatPrice(order.total)}`;
+                const customerType = document.createElement('p');
+                customerType.className = 'text-xs text-stone-500';
+                customerType.textContent = `Regular customer · ${order.customerEmail} · ${new Date(order.createdAt).toLocaleString()}`;
+                const orderedItems = document.createElement('p');
+                orderedItems.className = 'text-sm text-stone-600';
+                orderedItems.textContent = order.items.map((item) => `${item.quantity} × ${item.name}`).join(', ');
+                customerInfo.append(details, customerType, orderedItems);
+                if (order.bookingId) {
+                    const bookingInfo = document.createElement('p');
+                    bookingInfo.className = 'text-xs text-brand-800';
+                    bookingInfo.textContent = `Seat booking ${order.bookingId}`;
+                    customerInfo.append(bookingInfo);
+                }
+                const actions = document.createElement('div');
+                actions.className = 'flex items-center gap-2';
+                const status = document.createElement('select');
+                status.className = 'border border-stone-300 rounded-lg p-2 text-sm';
+                ['Received', 'Preparing', 'Ready', 'Completed', 'Cancelled'].forEach((value) => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = value;
+                    option.selected = order.status === value;
+                    status.append(option);
+                });
+                status.setAttribute('aria-label', `Update status for ${order.id}`);
+                status.addEventListener('change', () => {
+                    const previousStatus = order.status;
+                    const saved = getOrders().map((entry) => entry.id === order.id ? { ...entry, status: status.value } : entry);
+                    if (saveArray('pupCoffeeOrders', saved)) {
+                        recordAdminAudit('Order status', `${order.id}: ${previousStatus} to ${status.value}`);
+                        refreshRoleViews();
+                    }
+                });
+                const receiptButton = document.createElement('button');
+                receiptButton.type = 'button';
+                receiptButton.className = 'text-brand-800 font-semibold text-sm';
+                receiptButton.innerHTML = '<i class="fa-solid fa-print mr-1" aria-hidden="true"></i>View / print';
+                receiptButton.addEventListener('click', () => openReceipt(order));
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'button';
+                deleteButton.className = 'text-red-700 font-semibold text-sm';
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', () => {
+                    if (saveArray('pupCoffeeOrders', getOrders().filter((entry) => entry.id !== order.id))) refreshRoleViews();
+                });
+                actions.append(status, receiptButton, deleteButton);
+                row.append(customerInfo, actions);
+                if (order.review) {
+                    const review = document.createElement('p');
+                    review.className = 'basis-full text-sm text-stone-600';
+                    review.textContent = `Customer review: ${'★'.repeat(order.review.rating)}${'☆'.repeat(5 - order.review.rating)}${order.review.comment ? ` · ${order.review.comment}` : ''}`;
+                    row.append(review);
+                }
+                list.append(row);
+            });
+        }
+
+        function renderAdminMenu() {
+            const list = document.getElementById('adminMenuList');
+            list.replaceChildren();
+            catalog.forEach((product) => {
+                const row = document.createElement('div');
+                row.className = 'flex flex-wrap justify-between items-center gap-3 py-3';
+                const details = document.createElement('p');
+                details.className = 'text-sm';
+                details.textContent = `${product.name} · ${formatPrice(product.price)} · ${product.category === 'food' ? 'Food' : 'Coffee & drinks'}${product.description ? ` · ${product.description}` : ''}`;
+                const actions = document.createElement('div');
+                actions.className = 'flex gap-3';
+                const edit = document.createElement('button');
+                edit.type = 'button';
+                edit.className = 'text-brand-800 font-semibold text-sm';
+                edit.textContent = 'Edit';
+                edit.addEventListener('click', () => {
+                    editingProductId = product.id;
+                    pendingProductImage = product.image || null;
+                    document.getElementById('productName').value = product.name;
+                    document.getElementById('productPrice').value = String(product.price);
+                    document.getElementById('productCategory').value = product.category || 'drink';
+                    document.getElementById('productDescription').value = product.description || '';
+                    document.getElementById('productImageFile').value = '';
+                    updateProductImagePreview(product.image || null);
+                    document.getElementById('productSubmit').textContent = 'Save changes';
+                    document.getElementById('productName').focus();
+                });
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'text-red-700 font-semibold text-sm';
+                remove.textContent = 'Delete';
+                remove.addEventListener('click', () => {
+                    if (!window.confirm(`Permanently remove ${product.name} from the menu on this browser?`)) return;
+                    const updated = catalog.filter((entry) => entry.id !== product.id);
+                    if (!saveArray('pupCoffeeMenu', updated)) return showProductMessage('Could not save menu changes in this browser.');
+                    catalog = updated;
+                    if (editingProductId === product.id) resetProductForm();
+                    renderProducts();
+                    renderAdminMenu();
+                });
+                actions.append(edit, remove);
+                row.append(details, actions);
+                list.append(row);
+            });
+        }
+
+        function renderAdminMessages() {
+            const list = document.getElementById('adminContactList');
+            list.replaceChildren();
+            const messages = getContactMessages();
+            if (!messages.length) {
+                list.textContent = 'No messages received.';
+                list.className = 'divide-y divide-stone-200 text-sm text-stone-500';
+                return;
+            }
+            list.className = 'divide-y divide-stone-200';
+            messages.slice().reverse().forEach((message) => {
+                const row = document.createElement('div');
+                row.className = 'py-3 space-y-1';
+                const sender = document.createElement('p');
+                sender.className = 'font-semibold text-sm';
+                sender.textContent = `${message.name} · ${message.email} · ${new Date(message.createdAt).toLocaleString()}`;
+                const content = document.createElement('p');
+                content.className = 'text-sm text-stone-600 whitespace-pre-wrap';
+                content.textContent = message.message;
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'text-red-700 text-sm font-semibold';
+                remove.textContent = 'Delete message';
+                remove.addEventListener('click', () => {
+                    if (saveArray('pupCoffeeMessages', getContactMessages().filter((item) => item.id !== message.id))) renderAdminMessages();
+                });
+                row.append(sender, content, remove);
+                list.append(row);
+            });
+        }
+
+        function showProductMessage(message) {
+            const target = document.getElementById('productMessage');
+            target.textContent = message;
+            target.className = 'text-sm text-red-700';
+        }
+
+        function resetProductForm() {
+            editingProductId = null;
+            pendingProductImage = null;
+            document.getElementById('productForm').reset();
+            document.getElementById('productCategory').value = 'drink';
+            document.getElementById('productImageFile').value = '';
+            updateProductImagePreview(null);
+            document.getElementById('productSubmit').textContent = 'Add product';
+        }
+
+        function compressProductImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('Could not read the selected image.'));
+                reader.onload = () => {
+                    const image = new Image();
+                    image.onerror = () => reject(new Error('The selected file is not a readable image.'));
+                    image.onload = () => {
+                        const scale = Math.min(1, 1000 / Math.max(image.naturalWidth, image.naturalHeight));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+                        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+                        canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+                        canvas.toBlob((blob) => {
+                            if (!blob) return reject(new Error('Could not resize the selected image.'));
+                            const encoded = new FileReader();
+                            encoded.onerror = () => reject(new Error('Could not prepare the image for saving.'));
+                            encoded.onload = () => resolve(encoded.result);
+                            encoded.readAsDataURL(blob);
+                        }, 'image/webp', 0.82);
+                    };
+                    image.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function updateProductImagePreview(source) {
+            const preview = document.getElementById('productImagePreview');
+            preview.classList.toggle('hidden', !source);
+            if (source) preview.src = source;
+            else preview.removeAttribute('src');
+        }
+
+        document.getElementById('productImageFile').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                event.target.value = '';
+                pendingProductImage = null;
+                updateProductImagePreview(null);
+                return showProductMessage('Choose an image file to import.');
+            }
+            if (file.size > 8 * 1024 * 1024) {
+                event.target.value = '';
+                pendingProductImage = null;
+                updateProductImagePreview(null);
+                return showProductMessage('Choose an image smaller than 8 MB.');
+            }
+            try {
+                pendingProductImage = await compressProductImage(file);
+                updateProductImagePreview(pendingProductImage);
+                const message = document.getElementById('productMessage');
+                message.textContent = 'Picture ready to save with this product.';
+                message.className = 'text-sm text-emerald-800';
+            } catch (error) {
+                pendingProductImage = null;
+                updateProductImagePreview(null);
+                showProductMessage(error.message);
+            }
+        });
+
+        document.getElementById('posAddForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const product = catalog.find((entry) => entry.id === document.getElementById('posProductSelect').value);
+            const quantity = Number(document.getElementById('posQuantity').value);
+            if (!product || !Number.isInteger(quantity) || quantity < 1) return showPosMessage('Choose a menu item and valid quantity.');
+            const alreadyAdded = posCart.get(product.id)?.quantity || 0;
+            if (quantity + alreadyAdded > getProductStock(product)) return showPosMessage(`Only ${Math.max(0, getProductStock(product) - alreadyAdded)} ${product.name} available.`);
+            const item = posCart.get(product.id) || { name: product.name, price: Number(product.price), quantity: 0 };
+            item.quantity += quantity;
+            posCart.set(product.id, item);
+            document.getElementById('posQuantity').value = '1';
+            showPosMessage(`${product.name} added to counter order.`, false);
+            renderPosCart();
+        });
+
+        document.getElementById('posCompleteOrder').addEventListener('click', () => {
+            if (!posCart.size) return showPosMessage('Add at least one item before completing the order.');
+            for (const [productId, item] of posCart) {
+                const product = catalog.find((entry) => entry.id === productId);
+                if (!product || item.quantity > getProductStock(product)) return showPosMessage(`${item.name} no longer has enough stock. Adjust the counter order.`);
+            }
+            const customerType = document.getElementById('posCustomerType').value;
+            const customerEmail = document.getElementById('posCustomerEmail').value.trim().toLowerCase() || 'walk-in@pupcoffee.local';
+            const items = [...posCart.entries()].map(([productId, item]) => ({ ...item, productId }));
+            const order = {
+                id: `PUP-${Date.now()}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`,
+                customerName: document.getElementById('posCustomerName').value.trim() || 'Walk-in customer',
+                customerEmail,
+                customerType,
+                source: 'POS',
+                items,
+                total: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+                status: 'Received',
+                bookingId: null,
+                createdAt: new Date().toISOString()
+            };
+            const orders = getOrders();
+            orders.push(order);
+            if (!saveArray('pupCoffeeOrders', orders)) return showPosMessage('Could not save this counter order. The order remains in the POS.');
+            recordAdminAudit('POS order', `${order.id} · ${order.customerName} · ${formatPrice(order.total)}`);
+            posCart.clear();
+            document.getElementById('posCustomerName').value = '';
+            document.getElementById('posCustomerEmail').value = '';
+            document.getElementById('posCustomerType').value = 'Walk-in';
+            showPosMessage(`Order ${order.id} saved to the queue.`, false);
+            refreshRoleViews();
+        });
+
+        function showPosMessage(message, isError = true) {
+            const element = document.getElementById('posMessage');
+            element.textContent = message;
+            element.className = `text-sm rounded-lg p-3 ${isError ? 'bg-red-50 text-red-800' : 'bg-emerald-50 text-emerald-800'}`;
+        }
+
+        document.getElementById('quickRestockAll').addEventListener('click', () => {
+            const inventory = getInventoryState();
+            catalog.forEach((product) => {
+                const state = inventory[product.id] || { openingStock: 50, restocked: 0 };
+                state.restocked = (Number(state.restocked) || 0) + 25;
+                inventory[product.id] = state;
+            });
+            try {
+                localStorage.setItem('pupCoffeeInventory', JSON.stringify(inventory));
+            } catch {
+                return showInventoryMessage('Could not save inventory in this browser.');
+            }
+            recordAdminAudit('Quick restock all', `${catalog.length} products: +25 each`);
+            showInventoryMessage(`Added 25 units to each of ${catalog.length} menu products.`, false);
+            renderAdminInventory();
+            renderAdminAnalytics();
+        });
+
+        document.getElementById('refreshAdminAnalytics').addEventListener('click', () => {
+            renderAdminAnalytics();
+            renderAdminInventory();
+        });
+        document.getElementById('generateAdminReport').addEventListener('click', () => {
+            renderAdminReports();
+            document.body.classList.add('admin-report-print');
+            window.print();
+            window.setTimeout(() => document.body.classList.remove('admin-report-print'), 500);
+        });
+
+        document.getElementById('menuSearch').addEventListener('input', filterMenu);
+        document.getElementById('floatingCartButton').addEventListener('click', () => {
+            document.getElementById('customerCart').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        document.getElementById('featuredPrevious').addEventListener('click', () => moveFeaturedProduct(-1));
+        document.getElementById('featuredNext').addEventListener('click', () => moveFeaturedProduct(1));
+        const featuredCarousel = document.getElementById('featuredCarousel');
+        featuredCarousel.addEventListener('pointerdown', (event) => {
+            featuredPointerStart = event.clientX;
+        });
+        featuredCarousel.addEventListener('pointerup', (event) => {
+            if (featuredPointerStart === null) return;
+            const swipeDistance = event.clientX - featuredPointerStart;
+            if (Math.abs(swipeDistance) > 45) moveFeaturedProduct(swipeDistance < 0 ? 1 : -1);
+            featuredPointerStart = null;
+        });
+        featuredCarousel.addEventListener('pointercancel', () => {
+            featuredPointerStart = null;
+        });
+        featuredCarousel.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft') moveFeaturedProduct(-1);
+            if (event.key === 'ArrowRight') moveFeaturedProduct(1);
+        });
+        featuredCarousel.addEventListener('mouseenter', () => { featuredPaused = true; });
+        featuredCarousel.addEventListener('mouseleave', () => { featuredPaused = false; });
+        featuredCarousel.addEventListener('focusin', () => { featuredPaused = true; });
+        featuredCarousel.addEventListener('focusout', (event) => {
+            if (!featuredCarousel.contains(event.relatedTarget)) featuredPaused = false;
+        });
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            window.setInterval(() => {
+                if (!featuredPaused && !document.hidden) moveFeaturedProduct(1);
+            }, 5000);
+        }
+        document.getElementById('customerRegisterForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const email = document.getElementById('registerEmail').value.trim().toLowerCase();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerPasswordConfirm').value;
+            const accounts = getAccounts();
+
+            if (password !== confirmPassword) {
+                showAuthMessage('The passwords do not match.');
+                return;
+            }
+            if (accounts.some((account) => account.email === email)) {
+                showAuthMessage('An account with this email already exists.');
+                return;
+            }
+
+            accounts.push({
+                name: document.getElementById('registerName').value.trim(),
+                email,
+                phone: document.getElementById('registerPhone').value.trim(),
+                password
+            });
+            try {
+                localStorage.setItem('pupCoffeeAccounts', JSON.stringify(accounts));
+            } catch {
+                showAuthMessage('This browser could not save the account. Check storage settings.');
+                return;
+            }
+
+            document.getElementById('customerLoginEmail').value = email;
+            document.getElementById('customerRegisterForm').reset();
+            updatePasswordStrength();
+            setAuthView('customer-login');
+            showAuthMessage('Account created. Sign in with your email and password.', false);
+        });
+
+        document.getElementById('customerLoginForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const email = document.getElementById('customerLoginEmail').value.trim().toLowerCase();
+            const password = document.getElementById('customerLoginPassword').value;
+            const account = getAccounts().find((savedAccount) => savedAccount.email === email && savedAccount.password === password);
+
+            if (!account) {
+                showAuthMessage('Email or password is incorrect. Create an account first if you are new.');
+                return;
+            }
+            authMessage.classList.add('hidden');
+            enterDashboard(account.name, account.email, 'Customer account', 'customer');
+        });
+
+        document.getElementById('adminLoginForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const email = document.getElementById('adminLoginEmail').value.trim().toLowerCase();
+            const password = document.getElementById('adminLoginPassword').value;
+
+            if (email !== 'admin@pupcoffee.local' || password !== 'Admin123!') {
+                showAuthMessage('Administrator email or password is incorrect.');
+                return;
+            }
+            authMessage.classList.add('hidden');
+            enterDashboard('Administrator', email, 'Administrator', 'admin');
+        });
+
+        document.getElementById('signOutButton').addEventListener('click', signOut);
+        document.getElementById('navSignOutBtn').addEventListener('click', signOut);
+        document.getElementById('cancelSignOut').addEventListener('click', closeSignOutDialog);
+        document.getElementById('confirmSignOut').addEventListener('click', () => {
+            closeSignOutDialog();
+            completeSignOut();
+        });
+        document.getElementById('signOutModal').addEventListener('click', (event) => {
+            if (event.target.id === 'signOutModal') closeSignOutDialog();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !document.getElementById('signOutModal').classList.contains('hidden')) {
+                closeSignOutDialog();
+            }
+        });
+        document.getElementById('placeOrderBtn').addEventListener('click', () => {
+            const message = document.getElementById('orderMessage');
+            if (cart.size === 0) {
+                message.textContent = 'Add an item before placing an order.';
+                message.className = 'text-sm rounded-lg p-3 bg-amber-50 text-amber-800 border border-amber-200';
+                return;
+            }
+            if (!currentUser) return;
+            const activeBooking = currentUser.roleKey === 'customer'
+                ? reconcileSeatBookings().find((booking) => booking.customerEmail === currentUser.email && ['Waiting', 'Reserved', 'Delayed', 'Occupied'].includes(booking.status))
+                : null;
+            const order = createLinkedOrder(activeBooking?.id || null);
+            const orders = getOrders();
+            orders.push(order);
+            if (!saveArray('pupCoffeeOrders', orders)) {
+                message.textContent = 'Could not save this order in the browser. Your cart is unchanged.';
+                message.className = 'text-sm rounded-lg p-3 bg-red-50 text-red-800 border border-red-200';
+                return;
+            }
+            message.textContent = 'Order saved in this browser. The cafe has not received it.';
+            message.className = 'text-sm rounded-lg p-3 bg-emerald-50 text-emerald-800 border border-emerald-200';
+            cart.clear();
+            renderCart();
+            refreshRoleViews();
+            openReceipt(order);
+        });
+
+        document.getElementById('seatBookingForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const message = document.getElementById('seatBookingMessage');
+            if (currentUser?.roleKey !== 'customer') return;
+            const timeIn = new Date(document.getElementById('seatTimeIn').value);
+            const timeOut = new Date(document.getElementById('seatTimeOut').value);
+            const partySize = Number(document.getElementById('seatPartySize').value);
+            const groupType = document.querySelector('input[name="seatGroupType"]:checked')?.value || 'Solo';
+            const occasion = document.getElementById('seatOccasion').value;
+            if (!Number.isFinite(timeIn.getTime()) || timeIn.getTime() < Date.now() - 60000) {
+                message.textContent = 'Choose a time in the future for your seat booking.';
+                message.className = 'text-sm rounded-lg p-3 bg-amber-50 text-amber-800 border border-amber-200';
+                return;
+            }
+            if (!Number.isFinite(timeOut.getTime()) || timeOut <= timeIn || timeOut - timeIn > 12 * 60 * 60 * 1000) {
+                message.textContent = 'Choose a time out after your arrival, within 12 hours.';
+                message.className = 'text-sm rounded-lg p-3 bg-amber-50 text-amber-800 border border-amber-200';
+                return;
+            }
+            if (!Number.isInteger(partySize) || partySize < 1 || partySize > getTableCapacity()) {
+                message.textContent = `Party size must be between 1 and the ${getTableCapacity()} available table seats.`;
+                message.className = 'text-sm rounded-lg p-3 bg-amber-50 text-amber-800 border border-amber-200';
+                return;
+            }
+
+            const bookingId = `SEAT-${Date.now()}`;
+            const order = createLinkedOrder(bookingId);
+            const booking = {
+                id: bookingId,
+                customerName: currentUser.name,
+                customerEmail: currentUser.email,
+                groupType,
+                partySize,
+                occasion,
+                timeIn: timeIn.toISOString(),
+                timeOut: timeOut.toISOString(),
+                seatRate: getSeatRate(),
+                seatFee: calculateSeatFee(timeIn, timeOut, partySize),
+                paymentStatus: 'Unpaid',
+                status: 'Waiting',
+                statusNote: '',
+                orderId: order?.id || null,
+                createdAt: new Date().toISOString()
+            };
+            const bookings = getSeatBookings();
+            bookings.push(booking);
+            if (!saveArray('pupCoffeeSeatBookings', bookings)) {
+                message.textContent = 'Could not save your seat booking in this browser.';
+                message.className = 'text-sm rounded-lg p-3 bg-red-50 text-red-800 border border-red-200';
+                return;
+            }
+            if (order) {
+                const orders = getOrders();
+                orders.push(order);
+                if (!saveArray('pupCoffeeOrders', orders)) {
+                    saveArray('pupCoffeeSeatBookings', bookings.filter((entry) => entry.id !== bookingId));
+                    message.textContent = 'Could not save your order, so the booking was not completed. Your cart is unchanged.';
+                    message.className = 'text-sm rounded-lg p-3 bg-red-50 text-red-800 border border-red-200';
+                    return;
+                }
+                cart.clear();
+                renderCart();
+            }
+            const savedBooking = reconcileSeatBookings().find((entry) => entry.id === bookingId);
+            message.textContent = `Booking request sent. Waiting for admin approval; check My bookings for status updates. ${booking.seatFee > 0 ? `Estimated seat fee ${formatPrice(booking.seatFee)}, payable at the cafe.` : 'There is no seat fee.'}${order ? ` Order ${order.id} is linked to your booking.` : ''}`;
+            message.className = 'text-sm rounded-lg p-3 bg-amber-50 text-amber-800 border border-amber-200';
+            refreshRoleViews();
+        });
+
+        document.getElementById('closeReceipt').addEventListener('click', () => {
+            document.getElementById('receiptModal').classList.add('hidden');
+            document.body.classList.remove('admin-print-mode');
+        });
+        document.getElementById('printReceipt').addEventListener('click', () => {
+            if (currentUser?.roleKey === 'admin') window.print();
+        });
+        document.getElementById('receiptModal').addEventListener('click', (event) => {
+            if (event.target.id === 'receiptModal') {
+                event.currentTarget.classList.add('hidden');
+                document.body.classList.remove('admin-print-mode');
+            }
+        });
+        document.getElementById('refreshCustomerOrders').addEventListener('click', renderCustomerOrders);
+        document.getElementById('refreshSeatBookings').addEventListener('click', refreshRoleViews);
+        ['seatTimeIn', 'seatTimeOut', 'seatPartySize'].forEach((id) => {
+            document.getElementById(id).addEventListener('input', updateSeatFeeEstimate);
+            document.getElementById(id).addEventListener('change', updateSeatFeeEstimate);
+        });
+        document.querySelectorAll('input[name="seatGroupType"]').forEach((option) => {
+            option.addEventListener('change', () => {
+                document.getElementById('seatPartySize').value = { Solo: 1, Couple: 2, Friends: 4, Family: 4 }[option.value] || 1;
+                updateSeatFeeEstimate();
+            });
+        });
+        document.getElementById('seatRateForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const rate = Number(document.getElementById('seatRateInput').value);
+            const status = document.getElementById('seatRateMessage');
+            if (!Number.isFinite(rate) || rate < 0 || rate > 10000) {
+                status.textContent = 'Enter a rate from ₱0 to ₱10,000.';
+                status.className = 'text-sm text-red-700';
+                return;
+            }
+            try {
+                localStorage.setItem('pupCoffeeSeatRate', String(rate));
+                status.textContent = `Seat rate saved at ${rate > 0 ? `${formatPrice(rate)} per person/hour` : 'Free'}. New bookings will use this rate.`;
+                status.className = 'text-sm text-emerald-800';
+                updateSeatFeeEstimate();
+                renderAdminSeatBookings();
+            } catch {
+                status.textContent = 'Could not save the seat rate in this browser.';
+                status.className = 'text-sm text-red-700';
+            }
+        });
+
+        document.getElementById('productForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const name = document.getElementById('productName').value.trim();
+            const price = Number(document.getElementById('productPrice').value);
+            const description = document.getElementById('productDescription').value.trim() || 'Freshly prepared at Pup Coffee.';
+            const category = document.getElementById('productCategory').value;
+            if (!name || !Number.isFinite(price) || price <= 0) return showProductMessage('Enter a product name and a valid price.');
+            let updated;
+            if (editingProductId) {
+                updated = catalog.map((product) => product.id === editingProductId ? { ...product, name, price, description, category, image: pendingProductImage ?? product.image, alt: name } : product);
+            } else {
+                updated = [...catalog, {
+                    id: `product-${Date.now()}`,
+                    name,
+                    price,
+                    description,
+                    category,
+                    image: pendingProductImage || '',
+                    alt: name
+                }];
+            }
+            if (!saveArray('pupCoffeeMenu', updated)) return showProductMessage('Could not save menu changes in this browser.');
+            catalog = updated;
+            resetProductForm();
+            document.getElementById('productMessage').textContent = 'Menu saved in this browser.';
+            document.getElementById('productMessage').className = 'text-sm text-emerald-800';
+            renderProducts();
+            renderAdminMenu();
+        });
+
+        function changeOpenTables(amount) {
+            const current = getTableCapacity();
+            const updated = Math.max(0, Math.min(20, current + amount));
+            const assigned = reconcileSeatBookings().filter((booking) => ['Reserved', 'Occupied'].includes(booking.status));
+            const minimumCapacity = assigned.reduce((peak, booking) => {
+                const start = new Date(booking.timeIn).getTime();
+                const concurrent = assigned.filter((entry) => new Date(entry.timeIn).getTime() <= start && new Date(entry.timeOut).getTime() > start)
+                    .reduce((total, entry) => total + Number(entry.partySize || 1), 0);
+                return Math.max(peak, concurrent);
+            }, 0);
+            if (updated < minimumCapacity) {
+                window.alert(`Capacity cannot be lower than ${minimumCapacity} seats already reserved or occupied at the same time.`);
+                return;
+            }
+            localStorage.setItem('pupCoffeeOpenTables', String(updated));
+            refreshRoleViews();
+        }
+
+        function changeOpenSockets(amount) {
+            const current = Number(localStorage.getItem('pupCoffeeOpenSockets') || 2);
+            const updated = Math.max(0, Math.min(20, current + amount));
+            localStorage.setItem('pupCoffeeOpenSockets', String(updated));
+            document.getElementById('adminSocketCount').textContent = String(updated);
+            document.getElementById('openSocketsStatus').textContent = `${updated} Available`;
+        }
+
+        document.getElementById('decreaseTables').addEventListener('click', () => changeOpenTables(-1));
+        document.getElementById('increaseTables').addEventListener('click', () => changeOpenTables(1));
+        document.getElementById('decreaseSockets').addEventListener('click', () => changeOpenSockets(-1));
+        document.getElementById('increaseSockets').addEventListener('click', () => changeOpenSockets(1));
+
+        document.getElementById('contactForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const messages = getContactMessages();
+            messages.push({
+                id: `MSG-${Date.now()}`,
+                name: document.getElementById('contactName').value.trim(),
+                email: document.getElementById('contactEmail').value.trim(),
+                message: document.getElementById('contactMessage').value.trim(),
+                createdAt: new Date().toISOString()
+            });
+            const status = document.getElementById('contactStatus');
+            if (!saveArray('pupCoffeeMessages', messages)) {
+                status.textContent = 'Could not save this message in the browser. The branch was not notified.';
+                status.className = 'text-sm p-3 rounded-lg bg-red-50 text-red-800 border border-red-200';
+                return;
+            }
+            document.getElementById('contactForm').reset();
+            document.getElementById('contactName').value = currentUser?.name || '';
+            document.getElementById('contactEmail').value = currentUser?.email || '';
+            status.textContent = 'Message saved in this browser. The branch has not received it.';
+            status.className = 'text-sm p-3 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200';
+            if (currentUser?.roleKey === 'admin') renderAdminMessages();
+        });
+
+        authTabs.forEach((tab) => {
+            tab.addEventListener('click', () => {
+                setAuthView(tab.dataset.authView);
+                authMessage.classList.add('hidden');
+            });
+        });
+
+        renderProducts();
+        renderCart();
+    </script>
+</body>
+</html>
